@@ -1,0 +1,12 @@
+namespace org.acme.smartdonation.bankaccounts
+
+import org.acme.smartdonation.enums.*
+
+asset BankAccount identified by bankAccountId {
+  o   String        bankAccountId
+  o   String        accountNumber
+  o   String        routerNumber
+  o   String        specialInstruction
+  o   EntityState   status default = "ACTIVE"
+  o   DateTime      createdOn
+}

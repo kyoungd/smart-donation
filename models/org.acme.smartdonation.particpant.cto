@@ -1,0 +1,21 @@
+namespace  org.acme.smartdonation.participant
+
+abstract participant RoleParticipant identified by participantKey {
+  o String    participantKey
+  o String    department optional
+  o String    fName
+  o String    lname
+  o String    email
+}
+
+participant RoleDonor extends RoleParticipant {
+  o Integer   access
+}
+
+participant RoleCustomer extends RoleParticipant {
+  o Integer   access
+}
+
+participant RoleSupplier extends RoleParticipant {
+  o Integer   access
+}

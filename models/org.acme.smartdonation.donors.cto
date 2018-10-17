@@ -1,0 +1,26 @@
+namespace org.acme.smartdonation.donors
+
+import org.acme.smartdonation.enums.*
+
+asset Donor identified by donorId {
+  o   String          donorId
+  o   String          name
+  o   String          phoneNumber
+  o   String          emailAddress
+  o   EntityState     status default = "ACTIVE"
+  o   DateTime        createdOn
+}
+
+transaction CreateDonor {
+  o   String          name
+  o   String          phoneNumber
+  o   String          emailAddress
+  o   EntityState     status default = "ACTIVE"
+  o   DateTime        createdOn
+}
+
+event NotificationCreateDonor {
+  o   String      donorId
+  o   String      name
+}
+
