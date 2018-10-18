@@ -1,3 +1,5 @@
+"use strict"
+
 /**
  * 
  * This is to test the Donor transaction
@@ -31,17 +33,17 @@ before((done) => {
     });
 });
 
+async function getCustomerId(bnc) {
+    let customerId = '';
+    let results = await bnc.query('SelectAllCustomers');
+    if (results.length > 0)
+        customerId = results[0].participantId;
+    return customerId;
+}
+
 describe('Transaction Participant', () => {
     const NS = 'org.acme.smartdonation.participant';
     var numDonors = 0;
-    
-    async function getCustomerId(bnc) {
-        let customerId = '';
-        let results = await bnc.query('SelectAllCustomers');
-        if (results.length > 0)
-            customerId = results[0].participantId;
-        return customerId;
-    }
 
     async function getDonorId(bnc, customerId) {
         const donors = await bnc.query('SelectAllDonors');
@@ -81,6 +83,7 @@ describe('Transaction Participant', () => {
         return businessNetworkConnection.submitTransaction(transaction).then(()=>{
             assert(true);
         }).catch((error)=>{
+            console.log(error);
             assert(false, error);
         })
     });
@@ -89,10 +92,11 @@ describe('Transaction Participant', () => {
         try {
             const participantId = await getCustomerId(businessNetworkConnection);
             if (participantId !== '') {
-                const methodName = 'SetCustomerStatus';
+                const methodName = 'SetParticipantStatus';
                 let transaction = factory.newTransaction(NS, methodName);
                 transaction.setPropertyValue('participantId', participantId);
                 transaction.setPropertyValue('status', 'INACTIVE');
+                transaction.setPropertyValue('entityType', 'Customer');
                 await businessNetworkConnection.submitTransaction(transaction);
                 let list2 = await businessNetworkConnection.query('SelectAllCustomers');
                 if (list2.length <= 0)
@@ -102,6 +106,7 @@ describe('Transaction Participant', () => {
             else 
                 assert(false, 'no customer to test.');
         } catch(err){
+            console.log(error);
             assert(false, err);
         }
     })
@@ -130,6 +135,7 @@ describe('Transaction Participant', () => {
             assert(true);
         }
         catch(err) {
+            console.log(error);
             assert(false, error);
         }
     });
@@ -138,11 +144,45 @@ describe('Transaction Participant', () => {
         try {
             let customerId = await getCustomerId(businessNetworkConnection);
             let donorId = await getDonorId(businessNetworkConnection, customerId);
-            assert.notEqual(donorId, '');
+            const methodName = 'SetParticipantStatus';
+            let transaction = factory.newTransaction(NS, methodName);
+            transaction.setPropertyValue('participantId', donorId);
+            transaction.setPropertyValue('status', 'INACTIVE');
+            transaction.setPropertyValue('entityType', 'Donor');
+            await businessNetworkConnection.submitTransaction(transaction);
+            let list2 = await businessNetworkConnection.query('SelectADonor', { donorId });
+            if (list2.length <= 0)
+                assert(false, 'no donor in the registry with id ', donorId);
+            assert.equal(list2[0].status, 'INACTIVE');
         }
         catch(err){
+            console.log(error);
             assert(false, err);
         }
     });
 
 });
+
+describe('testing utilities', ()=> {
+    const NS = 'org.acme.smartdonation';
+
+    it ('create a bank account', async() => {
+        try {
+            const methodName = 'CreateBankAccount';
+            // Create the instance
+            let transaction = factory.newTransaction(NS+'.bankaccounts', methodName);
+            transaction.setPropertyValue('accountNumber', '1111-1111-1111-1111');
+            transaction.setPropertyValue('routingNumber', '2222222-2222222');
+            transaction.setPropertyValue('note', 'bank of banks');
+            transaction.setPropertyValue('status', 'ACTIVE');
+            transaction.setPropertyValue('createdOn', transaction.timestamp);
+            await businessNetworkConnection.submitTransaction(transaction);
+            assert(true);
+        }
+        catch(error) {
+            console.log(error);
+            assert(false, error);
+        }
+    });
+
+})

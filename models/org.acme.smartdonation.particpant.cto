@@ -1,7 +1,7 @@
 namespace  org.acme.smartdonation.participant
 
 import    org.acme.smartdonation.bankaccounts.BankAccount
-import org.acme.smartdonation.enums.*
+import    org.acme.smartdonation.enums.*
 
 concept RoleAccess {
   o Boolean       isRead default = false
@@ -25,14 +25,14 @@ participant Customer extends RoleParticipant {
 }
 
 participant Supplier extends RoleParticipant {
-  o String          companyName
+  o String          name
   --> Customer      customer
   --> BankAccount   bankAccount
 }
 
 participant Donor extends RoleParticipant {
-  --> Customer    customer
   o String        name
+  --> Customer    customer
 }
 
 transaction CreateCustomer {
@@ -48,13 +48,13 @@ transaction CreateCustomer {
   o String        name
 }
 
-transaction SetCustomerStatus {
+transaction SetParticipantStatus {
   o String        participantId
   o EntityState   status
+  o String        entityType
 }
 
 transaction CreateDonor {
-  o String        customerId
   o String        phoneNumber default =""
   o String        email default =""
   o String        note default =""
@@ -65,9 +65,20 @@ transaction CreateDonor {
   o Boolean       isDepartmentOnly default = false
   o Boolean       isAll default = true
   o String        name
+  o String        customerId
 }
 
-transaction SetDonorStatus {
-  o String        participantId
-  o EntityState   status
+transaction CreateSupplier {
+  o String        phoneNumber default =""
+  o String        email default =""
+  o String        note default =""
+  o String        status default = "ACTIVE"
+  o Boolean       isRead default = false
+  o Boolean       isWrite default = false
+  o Boolean       isAccountOnly default = false
+  o Boolean       isDepartmentOnly default = false
+  o Boolean       isAll default = true
+  o String        name
+  o String        customerId
+  o String        bankAccountId
 }

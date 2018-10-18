@@ -48,3 +48,16 @@ query SelectAllDonors {
   statement:
     SELECT org.acme.smartdonation.participant.Donor 
 }
+
+query SelectADonor {
+  description: "Return all active donors in the registry"
+  statement:
+    SELECT org.acme.smartdonation.participant.Donor 
+    WHERE (participantId == _$donorId)
+}
+
+query SelectAllBankAccounts {
+  description: "Return all bank accounts in the registry"
+  statement:
+    SELECT org.acme.smartdonation.bankaccounts.BankAccount 
+}
