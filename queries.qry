@@ -31,15 +31,21 @@
       ORDER BY [flightNumber ASC]
   } 
 
-
   query AllAircrafts {
   description: "Returns all aircrafts in the registry"
   statement:  
     SELECT  org.acme.airline.aircraft.Aircraft
 }
 
-query SelectAllDonors {
-   description: "Returns all donors in the registry"
-   statement:  
-      SELECT  org.acme.smartdonation.donors.Donor
+query SelectAllCustomers {
+  description: "Return all customers in the registry"
+  statement:
+    SELECT org.acme.smartdonation.participant.Customer
+}
+
+query SelectAllDonor {
+  description: "Return all donors for a customer in the registry"
+  statement:
+    SELECT org.acme.smartdonation.participant.Donor
+    WHERE (customer.participantId == _$customerId )
 }

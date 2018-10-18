@@ -1,21 +1,73 @@
 namespace  org.acme.smartdonation.participant
 
-abstract participant RoleParticipant identified by participantKey {
-  o String    participantKey
-  o String    department optional
-  o String    fName
-  o String    lname
-  o String    email
+import    org.acme.smartdonation.bankaccounts.BankAccount
+import org.acme.smartdonation.enums.*
+
+concept RoleAccess {
+  o Boolean       isRead default = false
+  o Boolean       isWrite default = false
+  o Boolean       isAccountOnly default = false
+  o Boolean       isDepartmentOnly default = false
+  o Boolean       isAll default = true
 }
 
-participant RoleDonor extends RoleParticipant {
-  o Integer   access
+abstract participant RoleParticipant identified by participantId {
+  o String        participantId
+  o String        phoneNumber default =""
+  o String        email default =""
+  o String        note default =""
+  o EntityState   status default = "ACTIVE"
+  o RoleAccess    access
 }
 
-participant RoleCustomer extends RoleParticipant {
-  o Integer   access
+participant Customer extends RoleParticipant {
+  o String    name
 }
 
-participant RoleSupplier extends RoleParticipant {
-  o Integer   access
+participant Supplier extends RoleParticipant {
+  o String          companyName
+  --> Customer      customer
+  --> BankAccount   bankAccount
+}
+
+participant Donor extends RoleParticipant {
+  --> Customer    customer
+  o String        name
+}
+
+transaction CreateCustomer {
+  o String        phoneNumber default =""
+  o String        email default =""
+  o String        note default =""
+  o String        status default = "ACTIVE"
+  o Boolean       isRead default = false
+  o Boolean       isWrite default = false
+  o Boolean       isAccountOnly default = false
+  o Boolean       isDepartmentOnly default = false
+  o Boolean       isAll default = true
+  o String        name
+}
+
+transaction SetCustomerStatus {
+  o String        participantId
+  o EntityState   status
+}
+
+transaction CreateDonor {
+  o String        customerId
+  o String        phoneNumber default =""
+  o String        email default =""
+  o String        note default =""
+  o String        status default = "ACTIVE"
+  o Boolean       isRead default = false
+  o Boolean       isWrite default = false
+  o Boolean       isAccountOnly default = false
+  o Boolean       isDepartmentOnly default = false
+  o Boolean       isAll default = true
+  o String        name
+}
+
+transaction SetDonorStatus {
+  o String        participantId
+  o EntityState   status
 }

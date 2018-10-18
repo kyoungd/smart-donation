@@ -1,7 +1,7 @@
 namespace org.acme.smartdonation.donations
 
 import    org.acme.smartdonation.bankaccounts.BankAccount
-import    org.acme.smartdonation.donors.Donor
+import    org.acme.smartdonation.participant.*
 import    org.acme.smartdonation.enums.*
 
 asset Donation identified by donationId {

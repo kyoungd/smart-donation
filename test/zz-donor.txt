@@ -1,12 +1,13 @@
 /**
  * 
- * This is to test the AssignAircraft transaction
+ * This is to test the Donor transaction
  * 
  * Pre-requisite
  * =============
  * 
  */
-var assert = require('chai').assert;
+
+const assert = require('chai').assert;
 const utHarness = require('./ut-harness.js')
 
 // This points to the model project folder
@@ -30,26 +31,36 @@ before((done) => {
     });
 });
 
-describe('Donor transaction', () => {
+describe('Transaction donor', () => {
     const NS = 'org.acme.smartdonation.donors';
     var numDonors = 0;
     
-    before(async (done)=>{
+    before((done)=>{
         console.log('before async done');
-        let results = await query('SelectAllDonors');
-        numDonors = results.length;
-        done();
+        businessNetworkConnection.query('SelectAllDonors')
+        .then(results=> {
+            numDonors = results.length;
+            done();
+        }).catch((err)=>{
+            console.log('query error: ', err);
+        })
     });
-
+    
+    // Test Case # 1 Sunny day path - we are able to assign an aircraft to the flight
     it('create a donor', () => {
         const methodName = 'CreateDonor';
-        // Get the factory using the BN Definition
-        const  factory = bnDefinition.getFactory();
         // Create the instance
-        let    transaction = factory.newTransaction(NS, methodName);
-        transaction.setPropertyValue("name", "young k");
-        transaction.setPropertyValue("phoneNumber", "123-123-1234");
-        transaction.setPropertyValue("emailAddress", "youngk@me.com");
-        transaction.setPropertyValue("createdOn", new Date());
+        let transaction = factory.newTransaction(NS, methodName);
+        transaction.setPropertyValue('name', 'young k');
+        transaction.setPropertyValue('phoneNumber', '123-123-1234');
+        transaction.setPropertyValue('emailAddress', 'youngk@me.com');
+        transaction.setPropertyValue('createdOn', new Date());
+        return businessNetworkConnection.submitTransaction(transaction).then(()=>{
+            console.log('Donor Added: ');
+            assert(true);
+        }).catch((error)=>{
+            assert(false, error);
+        })
     });
+
 });
