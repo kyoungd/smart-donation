@@ -35,6 +35,23 @@ describe('Transaction Participant', () => {
     const NS = 'org.acme.smartdonation.participant';
     var numDonors = 0;
     
+    async function getCustomerId(bnc) {
+        let customerId = '';
+        let results = await bnc.query('SelectAllCustomers');
+        if (results.length > 0)
+            customerId = results[0].participantId;
+        return customerId;
+    }
+
+    async function getDonorId(bnc, customerId) {
+        const donors = await bnc.query('SelectAllDonors');
+        const donor = donors.find(dn => dn.customer.getIdentifier() == customerId);
+        if (donor)
+            return donor.participantId;
+        else
+            return '';
+    }
+    
     before((done)=>{
         businessNetworkConnection.query('SelectAllCustomers')
         .then(results=> {
@@ -70,11 +87,8 @@ describe('Transaction Participant', () => {
 
     it('Set customer to inactive', async () => {
         try {
-            let list1 = await businessNetworkConnection.query('SelectAllCustomers');
-            if (list1.length <= 0)
-                assert(false, 'no customers in the registry 1');
-            else {
-                const participantId = list1[0].participantId;
+            const participantId = await getCustomerId(businessNetworkConnection);
+            if (participantId !== '') {
                 const methodName = 'SetCustomerStatus';
                 let transaction = factory.newTransaction(NS, methodName);
                 transaction.setPropertyValue('participantId', participantId);
@@ -85,18 +99,12 @@ describe('Transaction Participant', () => {
                     assert(false, 'no customers in the registry 2');
                 assert.equal(list2[0].status, 'INACTIVE');
             }
+            else 
+                assert(false, 'no customer to test.');
         } catch(err){
-            assert(false, error);
+            assert(false, err);
         }
     })
-    
-    async function getCustomerId(bnc) {
-        let customerId = '';
-        let results = await bnc.query('SelectAllCustomers');
-        if (results.length > 0)
-            customerId = results[0].participantId;
-        return customerId;
-    }
 
     // Test Case # 1 Sunny day path - we are able to assign an aircraft to the flight
     it('create a Donor', async () => {
@@ -126,23 +134,11 @@ describe('Transaction Participant', () => {
         }
     });
 
-    async function getDonorId(bnc, customerId) {
-        let donorId = '';
-        const query = bnc.buildQuery(
-            `SELECT org.acme.smartdonation.participant.Donor 
-             WHERE (customer.participantId == _$customerId) `
-        );
-        const donors = await bnc.query(query, { customerId: customerId });
-        if (donors.length > 0)
-            donorId = donors[0].participantId;
-        return donorId;
-    }
-
     it('disable a donor', async()=> {
         try {
             let customerId = await getCustomerId(businessNetworkConnection);
             let donorId = await getDonorId(businessNetworkConnection, customerId);
-            assert(true);
+            assert.notEqual(donorId, '');
         }
         catch(err){
             assert(false, err);

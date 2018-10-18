@@ -43,9 +43,8 @@ query SelectAllCustomers {
     SELECT org.acme.smartdonation.participant.Customer
 }
 
-query SelectAllDonor {
-  description: "Return all donors for a customer in the registry"
+query SelectAllDonors {
+  description: "Return all active donors in the registry"
   statement:
-    SELECT org.acme.smartdonation.participant.Donor
-    WHERE (customer.participantId == _$customerId )
+    SELECT org.acme.smartdonation.participant.Donor 
 }
