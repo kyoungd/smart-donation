@@ -1,7 +1,6 @@
 namespace  org.acme.smartdonation.participant
 
-import    org.acme.smartdonation.bankaccounts.BankAccount
-import    org.acme.smartdonation.enums.*
+import    org.acme.smartdonation.util.*
 
 concept RoleAccess {
   o Boolean       isRead default = false
@@ -33,52 +32,5 @@ participant Supplier extends RoleParticipant {
 participant Donor extends RoleParticipant {
   o String        name
   --> Customer    customer
-}
-
-transaction CreateCustomer {
-  o String        phoneNumber default =""
-  o String        email default =""
-  o String        note default =""
-  o String        status default = "ACTIVE"
-  o Boolean       isRead default = false
-  o Boolean       isWrite default = false
-  o Boolean       isAccountOnly default = false
-  o Boolean       isDepartmentOnly default = false
-  o Boolean       isAll default = true
-  o String        name
-}
-
-transaction SetParticipantStatus {
-  o String        participantId
-  o EntityState   status
-  o String        entityType
-}
-
-transaction CreateDonor {
-  o String        phoneNumber default =""
-  o String        email default =""
-  o String        note default =""
-  o String        status default = "ACTIVE"
-  o Boolean       isRead default = false
-  o Boolean       isWrite default = false
-  o Boolean       isAccountOnly default = false
-  o Boolean       isDepartmentOnly default = false
-  o Boolean       isAll default = true
-  o String        name
-  o String        customerId
-}
-
-transaction CreateSupplier {
-  o String        phoneNumber default =""
-  o String        email default =""
-  o String        note default =""
-  o String        status default = "ACTIVE"
-  o Boolean       isRead default = false
-  o Boolean       isWrite default = false
-  o Boolean       isAccountOnly default = false
-  o Boolean       isDepartmentOnly default = false
-  o Boolean       isAll default = true
-  o String        name
-  o String        customerId
-  o String        bankAccountId
+  --> BankAccount bankAccount
 }

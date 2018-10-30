@@ -1,0 +1,165 @@
+const NS = 'org.acme.smartdonation';
+
+function newid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16)
+          .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
+function setParticipantBaseValues(factory, entityType, entity) {
+    let participantId = newid();
+    let namespace = NS + '.participant';
+    let access = factory.newConcept(namespace, 'RoleAccess');
+    access.isRead = entity.isRead;
+    access.isWrite = entity.isWrite;
+    access.isAccountOnly = entity.isAccountOnly;
+    access.isDepartmentOnly = entity.isDepartmentOnly;
+    access.isAll = entity.isAll;
+    let baseEntity = factory.newResource(namespace, entityType, participantId);
+    baseEntity.participantId = participantId;
+    baseEntity.phoneNumber = entity.phoneNumber;
+    baseEntity.email = entity.email;
+    baseEntity.note = entity.note;
+    baseEntity.access = access;
+    baseEntity.status = entity.status;
+    return baseEntity;
+}
+
+/**
+ * Create a new customer - only network admin can run this command.
+ * @param {org.acme.smartdonation.participant.CreateCustomer} entity
+ * @transaction
+ */
+async function createCustomer(entity) {
+    try {
+        const factory = getFactory();
+        let namespace = NS + '.participant';
+
+        let item = setParticipantBaseValues(factory, 'Customer', entity);
+        item.name = entity.name;
+
+        let fns = namespace + '.Customer';
+        const registry = await getParticipantRegistry(fns);
+        await registry.add(item);
+    }
+    catch (err) {
+        throw new Error('CreateCustomer(): ' + err);
+    }
+}
+
+/**
+ * Create a new customer - only network admin can run this command.
+ * @param {org.acme.smartdonation.participant.CreateDonor} entity
+ * @transaction
+ */
+async function createDonor(entity) {
+    try {
+        const factory = getFactory();
+        let namespace = NS + '.participant';
+        let fns = namespace + '.Donor';
+
+        let item = setParticipantBaseValues(factory, 'Donor', entity);
+        item.name = entity.name;
+
+        item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
+        item.bankAccount = factory.newRelationship(NS + '.objects', 'BankAccount', entity.bankAccountId);
+        const registry = await getParticipantRegistry(fns);
+        await registry.add(item);
+    }
+    catch (err) {
+        throw new Error('createDonor(): ' + err);
+    }
+}
+
+/**
+ * Create a new customer - only network admin can run this command.
+ * @param {org.acme.smartdonation.participant.CreateSupplier} entity
+ * @transaction
+ */
+async function createSupplier(entity) {
+    try {
+        const factory = getFactory();
+        let namespace = NS + '.participant';
+        let fns = namespace + '.Supplier';
+
+        let item = setParticipantBaseValues(factory, 'Supplier', entity);
+        item.name = entity.name;
+
+        item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
+        item.bankAccount = factory.newRelationship(NS + '.objects', 'BankAccount', entity.bankAccountId);
+        const registry = await getParticipantRegistry(fns);
+        await registry.add(item);
+    }
+    catch (err) {
+        throw new Error('createSupplier(): ' + err);
+    }
+}
+
+/**
+ * Create a new bank account - only network admin can run this command.
+ * @param {org.acme.smartdonation.objects.CreateBankAccount} entity
+ * @transaction
+ */
+async function createBankAccount(entity) {
+    try {
+        const factory = getFactory();
+        let bankAccountId = newid();
+        let namespace = NS + '.objects';
+        let fns = namespace + '.BankAccount';
+        let bankAccount = factory.newResource(namespace, 'BankAccount', bankAccountId);
+        bankAccount.entityId = bankAccountId;
+        bankAccount.accountNumber = entity.accountNumber;
+        bankAccount.routingNumber = entity.routingNumber;
+        bankAccount.status = entity.status;
+        bankAccount.note = entity.note;
+        bankAccount.createdOn = entity.createdOn;
+        const registry = await getAssetRegistry(fns);
+        await registry.add(bankAccount);
+    }
+    catch (err) {
+        throw new Error('CreateCustomer(): ' + err);
+    }
+}
+
+/**
+ * Create a new customer - only network admin can run this command.
+ * @param {org.acme.smartdonation.objects.SetParticipantStatus} entity
+ * @transaction
+ */
+async function setParticipantStatus(entity) {
+    try {
+        const factory = getFactory();
+        const namespace = NS + '.participant';
+        const fns = namespace + '.' + entity.entityType;
+        const registry = await getParticipantRegistry(fns);
+        let item = await registry.get(entity.participantId);
+        item.status = entity.status;
+        await registry.update(item);
+    }
+    catch (err) {
+        throw new Error('setParticipantStatus(): ' + err);
+    }
+}
+
+/**
+ * Create a new customer - only network admin can run this command.
+ * @param {org.acme.smartdonation.objects.SetAssetStatus} entity
+ * @transaction
+ */
+async function setAssetStatus(entity) {
+    try {
+        const factory = getFactory();
+        const namespace = NS + '.' + entity.entityGroup;
+        const fns = namespace + '.' + entity.entityType;
+        const registry = await getAssetRegistry(fns);
+        let item = await registry.get(entity.entityId);
+        item.status = entity.status;
+        await registry.update(item);
+    }
+    catch (err) {
+        throw new Error('setAssetStatus(): ' + err);
+    }
+}

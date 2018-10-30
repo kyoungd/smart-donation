@@ -1,0 +1,98 @@
+namespace org.acme.smartdonation.object
+
+import    org.acme.smartdonation.util.*
+import    org.acme.smartdonation.participant.*
+
+
+// ------------------------------------------ CAMPAIGNS -------------------------------------
+
+asset Campaign identified by entityId {
+  o   String        entityId
+  o   String        name
+  o   String        description
+  o   Double        amount
+  o   EntityState   status default = "ACTIVE"
+  o   DateTime      createdOn optional
+  --> Customer      customer
+  --> Donor         donor
+  --> Donation      donation
+  --> BankAccount   bankAccount         // donation bank account
+}
+
+asset CampaignRequest identified by entityId {
+  o   String        entityId
+  o   Double        amount optional
+  o   DateTime      createdOn optional
+  o   String        description
+  o   String        name
+  o   RequestState  requestStatus default = "WAITING"
+  o   String        requestStatusReason
+  o   DateTime      respondedOn optional
+  o   EntityState   status default = "ACTIVE"
+  --> Campaign      campaign
+  --> Customer      customer
+  --> Donation      donation
+  --> Donor         donor
+  --> Supplier      supplier
+}
+
+// ------------------------------------------ CAMPAIGNS -------------------------------------
+
+
+
+// ------------------------------------------ DONATIONS -------------------------------------
+
+asset Donation identified by entityId {
+  o   String        entityId
+  o   String        name
+  o   String        description
+  o   String[]      rules
+  o   String        note
+  o   DateTime      donateOn optional
+  o   Double        amount
+  o   DateTime      availableOn optional
+  o   DateTime      expirationOn optional
+  o   EntityState   status default = "ACTIVE"
+  o   Boolean       isExpired default=false                   // has donation expired
+  o   Boolean       isDonationLeft default=false              // Is there contribution left in the donation?
+  o   Boolean       isDonationSuccess default=false          // Is the donation complete?  No money left?
+  o   Boolean       isDonationPartialSuccess default=false   // Is the donation complete?  No money left?
+  o   Boolean       isDonationReturned default=false         // Did we return the donation?
+  o   Boolean       isDonationReturnMust default=true       // Must we return the donation or should we keep it?
+  --> BankAccount   bankAccount         // donation bank account
+  --> Donor         donor
+  --> Customer      customer
+}
+
+asset TransferFund identified by entityId {
+  o   String            entityId
+  --> Customer          customer
+  --> Donor             donor
+  --> Donation          donation
+  --> Campaign          campaign
+}
+
+// ------------------------------------------ DONATIONS -------------------------------------
+
+
+
+// ------------------------------------------ PRODUCT -------------------------------------
+
+asset Product identified by entityId {
+  o   String            entityId
+  o   String            approvalResponse optional
+  o   ApprovalState     approvalStatus default = "WAITING"
+  o   DateTime          createdOn optional
+  o   String            description
+  o   String            name
+  o   String            note
+  o   ProductState      productStatus optional
+  o   DateTime          submittedForApprovaOn optional
+  --> Campaign          campaign
+  --> Customer          customer
+  --> Donation          donation
+  --> Donor             donor
+  --> Supplier          supplier
+}
+
+// ------------------------------------------ PRODUCT -------------------------------------

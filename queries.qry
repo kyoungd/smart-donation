@@ -44,20 +44,61 @@ query SelectAllCustomers {
 }
 
 query SelectAllDonors {
-  description: "Return all active donors in the registry"
+  description: "Return all donors in the registry"
   statement:
     SELECT org.acme.smartdonation.participant.Donor 
 }
 
 query SelectADonor {
-  description: "Return all active donors in the registry"
+  description: "Return a donor in the registry"
   statement:
     SELECT org.acme.smartdonation.participant.Donor 
-    WHERE (participantId == _$donorId)
+    WHERE (participantId == _$participantId)
+}
+
+query SelectAllSuppliers {
+  description: "Return all suppliers in the registry"
+  statement:
+    SELECT org.acme.smartdonation.participant.Supplier 
+}
+
+query SelectASupplier {
+  description: "Return a supplier in the registry"
+  statement:
+    SELECT org.acme.smartdonation.participant.Supplier 
+    WHERE (participantId == _$participantId)
 }
 
 query SelectAllBankAccounts {
   description: "Return all bank accounts in the registry"
   statement:
-    SELECT org.acme.smartdonation.bankaccounts.BankAccount 
+    SELECT org.acme.smartdonation.util.BankAccount 
+}
+
+query SelectABankAccount {
+  description: "Return a bank accounts in the registry"
+  statement:
+    SELECT org.acme.smartdonation.util.BankAccount 
+    WHERE (entityId == _$entityId)
+}
+
+query SelectTransferFundCampaignRequest {
+  description: "Return all CampaignRequest related to a campaign"
+  statement:
+    SELECT org.acme.smartdonation.object.CampaignRequest
+    WHERE (campaign.$identifier == _$id AND status == _$entityState AND requestStatus == _$requestState)
+}
+
+query SelectTransferFundProduct {
+  description: "Return all products that is related to a campaign"
+  statement:
+    SELECT org.acme.smartdonation.object.Product
+    WHERE (campaign.$identifier == _$id AND productStatus == _$productStatus AND approvalStatus == _$approvalStatus)
+}
+
+query SelectTransferFund {
+  description: "Return all transferFund that is related to a campaign"
+  statement:
+    SELECT org.acme.smartdonation.objects.TransferFund
+    WHERE (campaign.$identifier == _$id)
 }

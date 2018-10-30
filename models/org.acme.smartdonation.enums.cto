@@ -1,9 +1,0 @@
-namespace org.acme.smartdonation.enums
-
-enum EntityState {
-  o INACTIVE
-  o ACTIVE
-  o CANCELLED
-  o SUSPENDED
-  o COMPLETE
-}

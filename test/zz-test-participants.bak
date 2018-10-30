@@ -1,0 +1,313 @@
+"use strict"
+
+/**
+ * 
+ * This is to test the Donor transaction
+ * 
+ * Pre-requisite
+ * =============
+ * 
+ */
+
+const assert = require('chai').assert;
+const utHarness = require('./ut-harness.js')
+
+// This points to the model project folder
+var modelFolder = __dirname+'/..'
+
+var adminConnection = {}
+var businessNetworkConnection = {}
+var bnDefinition = {}
+var factory = {}
+
+// Synchronous call so that connections can be established
+// Executed before the describe{} gets executed
+before((done) => {
+    utHarness.debug = false;
+    utHarness.initialize(modelFolder, (adminCon, bnCon, definition) => {
+        adminConnection = adminCon;
+        businessNetworkConnection = bnCon;
+        bnDefinition = definition;
+        factory = bnDefinition.getFactory();
+        done();
+    });
+});
+
+async function getCustomerId(bnc) {
+    let customerId = '';
+    let results = await bnc.query('SelectAllCustomers');
+    if (results.length > 0)
+        customerId = results[0].participantId;
+    return customerId;
+}
+
+async function getParticipantIdOfACustomer(bnc, queryName, customerId) {
+    const donors = await bnc.query(queryName);
+    const donor = donors.find(dn => dn.customer.getIdentifier() == customerId);
+    if (donor)
+        return donor.participantId;
+    else
+        return '';
+}
+
+async function getFirstEntityId(bnc, queryName, index) {
+    let entityId = '';
+    let results = await bnc.query(queryName);
+    if (results.length >= index)
+        entityId = results[index-1].entityId;
+    return entityId;
+}
+
+describe('Transaction Participant', () => {
+    const NS = 'org.acme.smartdonation.participant';
+    var numDonors = 0;
+    
+    before((done)=>{
+        businessNetworkConnection.query('SelectAllCustomers')
+        .then(results=> {
+            numDonors = results.length;
+            done();
+        }).catch((err)=>{
+            console.log('Transaction customer - before: ', err);
+        })
+    });
+    
+    // Test Case # 1 Sunny day path - we are able to assign an aircraft to the flight
+    it('create a Customer', () => {
+        const methodName = 'CreateCustomer';
+        // Create the instance
+        let transaction = factory.newTransaction(NS, methodName);
+        transaction.setPropertyValue('phoneNumber', '123-123-1234');
+        transaction.setPropertyValue('email', 'john@me.com');
+        transaction.setPropertyValue('note', 'great charity done right');
+        transaction.setPropertyValue('status', 'ACTIVE');
+        transaction.setPropertyValue('isRead', false);
+        transaction.setPropertyValue('isWrite', false);
+        transaction.setPropertyValue('isAccountOnly', false);
+        transaction.setPropertyValue('isDepartmentOnly', false);
+        transaction.setPropertyValue('isAll', false);
+        transaction.setPropertyValue('name', 'john');
+      
+        return businessNetworkConnection.submitTransaction(transaction).then(()=>{
+            assert(true);
+        }).catch((error)=>{
+            console.log(error);
+            assert(false, error);
+        })
+    });
+
+    it ('create a bank account 1', async() => {
+        const NS = 'org.acme.smartdonation.objects';
+        try {
+            const methodName = 'CreateBankAccount';
+            // Create the instance
+            let transaction = factory.newTransaction(NS, methodName);
+            transaction.setPropertyValue('accountNumber', 'A111-1111-1111-1111');
+            transaction.setPropertyValue('routingNumber', 'B222222-2222222');
+            transaction.setPropertyValue('note', 'bank of banks');
+            transaction.setPropertyValue('status', 'ACTIVE');
+            transaction.setPropertyValue('createdOn', transaction.timestamp);
+            await businessNetworkConnection.submitTransaction(transaction);
+            assert(true);
+        }
+        catch(error) {
+            console.log(error);
+            assert(false, error);
+        }
+    });
+
+    // Test Case # 1 Sunny day path - we are able to assign an aircraft to the flight
+    it('create a Donor', async () => {
+        try {
+            let customerId = await getCustomerId(businessNetworkConnection);
+            const bankAccountId = await getFirstEntityId(businessNetworkConnection, 'SelectAllBankAccounts', 1);
+
+            const methodName = 'CreateDonor';
+            // Create the instance
+            let transaction = factory.newTransaction(NS, methodName);
+            transaction.setPropertyValue('phoneNumber', '123-123-1234');
+            transaction.setPropertyValue('email', 'donor1@me.com');
+            transaction.setPropertyValue('note', 'great charity done right');
+            transaction.setPropertyValue('status', 'ACTIVE');
+            transaction.setPropertyValue('isRead', false);
+            transaction.setPropertyValue('isWrite', false);
+            transaction.setPropertyValue('isAccountOnly', false);
+            transaction.setPropertyValue('isDepartmentOnly', false);
+            transaction.setPropertyValue('isAll', false);
+            transaction.setPropertyValue('name', 'donor1');
+            transaction.setPropertyValue('customerId', customerId);
+            transaction.setPropertyValue('bankAccountId', bankAccountId);
+        
+            await businessNetworkConnection.submitTransaction(transaction);
+            assert(true);
+        }
+        catch(err) {
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+    it ('create a bank account 2', async() => {
+        const NS = 'org.acme.smartdonation.objects';
+        try {
+            const methodName = 'CreateBankAccount';
+            // Create the instance
+            let transaction = factory.newTransaction(NS, methodName);
+            transaction.setPropertyValue('accountNumber', '1111-1111-1111-1111');
+            transaction.setPropertyValue('routingNumber', '2222222-2222222');
+            transaction.setPropertyValue('note', 'bank of banks');
+            transaction.setPropertyValue('status', 'ACTIVE');
+            transaction.setPropertyValue('createdOn', transaction.timestamp);
+            await businessNetworkConnection.submitTransaction(transaction);
+            assert(true);
+        }
+        catch(error) {
+            console.log(error);
+            assert(false, error);
+        }
+    });
+
+    it('create a supplier', async() => {
+        try {
+            let customerId = await getCustomerId(businessNetworkConnection);
+            const bankAccountId = await getFirstEntityId(businessNetworkConnection, 'SelectAllBankAccounts', 2);
+
+            const methodName = 'CreateSupplier';
+            // Create the instance
+            let transaction = factory.newTransaction(NS, methodName);
+            transaction.setPropertyValue('phoneNumber', '123-123-1234');
+            transaction.setPropertyValue('email', 'supplier1@me.com');
+            transaction.setPropertyValue('note', 'great advertisement done right');
+            transaction.setPropertyValue('status', 'ACTIVE');
+            transaction.setPropertyValue('isRead', false);
+            transaction.setPropertyValue('isWrite', false);
+            transaction.setPropertyValue('isAccountOnly', false);
+            transaction.setPropertyValue('isDepartmentOnly', false);
+            transaction.setPropertyValue('isAll', false);
+            transaction.setPropertyValue('name', 'supplier1');
+            transaction.setPropertyValue('customerId', customerId);
+            transaction.setPropertyValue('bankAccountId', bankAccountId);
+        
+            await businessNetworkConnection.submitTransaction(transaction);
+            assert(true);
+        }
+        catch(err) {
+            console.log(err);
+            assert(false, err);
+        }
+
+    })
+});
+
+describe('testing utilities', ()=> {
+    const NS = 'org.acme.smartdonation';
+
+    it('disable a customer', async () => {
+        try {
+            const participantId = await getCustomerId(businessNetworkConnection);
+            if (participantId !== '') {
+                const methodName = 'SetParticipantStatus';
+                let transaction = factory.newTransaction(NS+'.objects', methodName);
+                transaction.setPropertyValue('participantId', participantId);
+                transaction.setPropertyValue('status', 'INACTIVE');
+                transaction.setPropertyValue('entityType', 'Customer');
+                await businessNetworkConnection.submitTransaction(transaction);
+                let list2 = await businessNetworkConnection.query('SelectAllCustomers');
+                if (list2.length <= 0)
+                    assert(false, 'no customers in the registry 2');
+                assert.equal(list2[0].status, 'INACTIVE');
+            }
+            else 
+                assert(false, 'no customer to test.');
+        } catch(err){
+            console.log(error);
+            assert(false, err);
+        }
+    })
+
+    async function setParticiapantStatus (participantId, queryOne, entityType, entityStatus){
+        if (participantId) {
+            const methodName = 'SetParticipantStatus';
+            let transaction = factory.newTransaction(NS+'.objects', methodName);
+            transaction.setPropertyValue('participantId', participantId);
+            transaction.setPropertyValue('entityType', entityType);
+            transaction.setPropertyValue('status', entityStatus);
+            await businessNetworkConnection.submitTransaction(transaction);
+            let entity = await businessNetworkConnection.query(queryOne, { participantId });
+            if (!entity)
+                assert(false, 'no donor in the registry 2');
+            else
+                assert.equal(entity[0].status, 'INACTIVE');
+        }
+        else
+            assert(false, 'no donor in the registry 1')
+    }
+
+    it('disable a donor', async()=> {
+        try {
+            let customerId = await getCustomerId(businessNetworkConnection);
+            let participantId = await getParticipantIdOfACustomer(businessNetworkConnection, 'SelectAllDonors', customerId);
+                
+            let queryOne = 'SelectADonor';
+            let entityType = 'Donor';
+            let entityStatus = 'INACTIVE';
+            await setParticiapantStatus (participantId, queryOne, entityType, entityStatus);
+        }
+        catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+    it('disable a supplier', async()=> {
+        try {
+            let customerId = await getCustomerId(businessNetworkConnection);
+            let participantId = await getParticipantIdOfACustomer(businessNetworkConnection, 'SelectAllSuppliers', customerId)
+                
+            let queryOne = 'SelectASupplier';
+            let entityType = 'Supplier';
+            let entityStatus = 'INACTIVE';
+            await setParticiapantStatus (participantId, queryOne, entityType, entityStatus);
+        }
+        catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+    async function setAssetStatus(queryAll, queryOne, entityGroup, entityType, entityStatus) {
+        let entityId = await getFirstEntityId(businessNetworkConnection, queryAll, 1);
+        if (entityId) {
+            const methodName = 'SetAssetStatus';
+            let transaction = factory.newTransaction(NS+'.objects', methodName);
+            transaction.setPropertyValue('entityId', entityId);
+            transaction.setPropertyValue('entityGroup', entityGroup);
+            transaction.setPropertyValue('entityType', entityType);
+            transaction.setPropertyValue('status', entityStatus);
+            await businessNetworkConnection.submitTransaction(transaction);
+            let entity = await businessNetworkConnection.query(queryOne, { entityId });
+            if (!entity)
+                assert(false, 'no asset in the registry 1.');
+            else
+                assert.equal(entity[0].status, entityStatus);
+        }
+        else
+            assert(false, 'no asset in the registry 2.');
+    }
+
+    it('disable a bank account', async()=> {
+        try {
+            let queryAll        = 'SelectAllBankAccounts';
+            let queryOne        = 'SelectABankAccount';
+            let entityGroup     = 'objects';
+            let entityType      = 'BankAccount';
+            let entityStatus    = 'INACTIVE';
+            await setAssetStatus(queryAll, queryOne, entityGroup, entityType, entityStatus);
+        }
+        catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+})

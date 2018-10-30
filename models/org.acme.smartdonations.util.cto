@@ -1,0 +1,65 @@
+namespace org.acme.smartdonation.util
+
+enum EntityState {
+  o INACTIVE
+  o ACTIVE
+  o CANCELLED
+  o SUSPENDED
+  o COMPLETE
+}
+
+enum RequestState {
+  o WAITING
+  o CONSIDERING
+  o ACCEPTED
+  o REJECTED
+}
+
+enum ProductState {
+  o NOT_STARTED
+  o PROGRESS
+  o WAITING
+  o COMPLETE
+  o SUBMITTED
+  o ABANDONED
+}
+
+enum ApprovalState {
+  o WAITING
+  o CONSIDERING
+  o ACCEPTED
+  o REJECTED
+}
+
+enum CampaignState {
+  o INACTIVE
+  o ACTIVE
+  o REQUEST_COMPLETE
+  o COMPLETE
+}
+
+asset BankAccount identified by entityId {
+  o   String        entityId
+  o   String        accountNumber
+  o   String        routingNumber
+  o   String        note
+  o   EntityState   status default = "ACTIVE"
+  o   DateTime      createdOn
+}
+
+transaction SetParticipantStatus {
+  o String        participantId
+  o EntityState   status
+  o String        entityType
+}
+
+transaction SetAssetStatus {
+  o String        entityId
+  o EntityState   status
+  o String        entityGroup
+  o String        entityType
+}
+
+transaction TransferFundToCampaign {
+  o String        campaignId
+}
