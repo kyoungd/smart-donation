@@ -777,36 +777,67 @@ describe('testing queries', ()=> {
         let resultJson = JSON.stringify(result, null, 4);
     })
 
-    it ('query customer campaign information', async() => {
-        let customer = await getParticipant("Customer", customerId1);
-        let campaigns = await businessNetworkConnection.query("Customer_GetCampaign", { customer: customer.toURI() });
-        let campaignRequests = await businessNetworkConnection.query("Customer_GetCampaignRequest", { customer: customer.toURI() });
-        let products = await businessNetworkConnection.query("Customer_GetProduct", { customer: customer.toURI() });
-        let result = [];
-        campaigns.map(c=> {
-            let productSummary = getItemSummary(c, products, "donation");
-            let crSummary = getItemSummary(c, campaignRequests, "donation");
-            let data = getSummary(productSummary, crSummary);
-            // item for campaign-result per campaign
+    async function getCampaignRequest(campaign, campaignRequests) {
+        let crs = [];
+        const promises = campaignRequests.filter(cr => cr.campaign.$identifier == campaign.entityId).map(async (cr) => {
+            let supplier = await getParticipant("Supplier", cr.supplier.$identifier);
             let item = {
-                entityId: c.entityId,
-                name: c.name,
-                description: c.description,
-                status: c.status,
-                amount: c.amount,
-                createdOn: c.createdOn,
-                donor: getObject("object", "Donor", c.donor.$identifier).name,
-                donation: getObject("object", "Donation", c.donation.$identifier).name,
-                donationAmount: getObject("object", "Donation", c.donation.$identifier).amount,
-                bankAccount: getObject("object", "BankAccount", c.bankAccount.$identifier).accountNumber,
-                total: data.total,
-                accepted: data.accepted,
-                rejected: data.rejected,
-                waiting: data.waiting,
+                entityId: cr.entityId,
+                amount: cr.amount,
+                createdOn: cr.createdOn,
+                description: cr.description,
+                name: cr.name,
+                requestStatus: cr.requestStatus,
+                requestStatusReason: cr.requestStatusReason,
+                respondedOn: cr.respondedOn,
+                status: cr.status,
+                supplier: supplier.name,
             }
-            result.push(item);
+            crs.push(item);
         })
-        let resultJson = JSON.stringify(result, null, 4);
+        await Promise.all(promises);
+        return crs;
+    }
+
+    it ('query customer campaign information', async() => {
+        try {
+            let customer = await getParticipant("Customer", customerId1);
+            let campaigns = await businessNetworkConnection.query("Customer_GetCampaign", { customer: customer.toURI() });
+            let campaignRequests = await businessNetworkConnection.query("Customer_GetCampaignRequest", { customer: customer.toURI() });
+            let products = await businessNetworkConnection.query("Customer_GetProduct", { customer: customer.toURI() });
+            let result = [];
+            const promises = campaigns.map(async (c)=> {
+                let productSummary = getItemSummary(c, products, "donation");
+                let crSummary = getItemSummary(c, campaignRequests, "donation");
+                let data = getSummary(productSummary, crSummary);
+                // item for campaign-result per campaign
+                let donation = await getObject("object", "Donation", c.donation.$identifier);
+                let bankAccount = await getObject("util", "BankAccount", c.bankAccount.$identifier);
+                let resultCrs = await getCampaignRequest(c, campaignRequests);
+                let item = {
+                    entityId: c.entityId,
+                    name: c.name,
+                    description: c.description,
+                    status: c.status,
+                    amount: c.amount,
+                    createdOn: c.createdOn,
+                    donation : donation.name,
+                    donationAmount: donation.amount,
+                    bankAccount: bankAccount.accountNumber,
+                    total: data.total,
+                    accepted: data.accepted,
+                    rejected: data.rejected,
+                    waiting: data.waiting,
+                    campaignRequests: resultCrs,
+                }
+                result.push(item);
+            })
+            await Promise.all(promises);
+            let resultJson = JSON.stringify(result, null, 4);
+            assert.exists(resultJson);
+        } catch (err) {
+            assert(false, 'query customer campaign information - ' + err);
+        }
     })
 
 });
