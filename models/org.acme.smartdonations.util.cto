@@ -1,41 +1,20 @@
 namespace org.acme.smartdonation.util
 
 enum EntityState {
-  o INACTIVE
-  o ACTIVE
-  o CANCELLED
-  o SUSPENDED
-  o COMPLETE
-}
-
-enum RequestState {
-  o WAITING
-  o CONSIDERING
-  o ACCEPTED
-  o REJECTED
-}
-
-enum ProductState {
-  o NOT_STARTED
-  o PROGRESS
-  o WAITING
-  o COMPLETE
-  o SUBMITTED
-  o ABANDONED
+  o NOT_STARTED     // asset is inactive.  It hasn't started yet
+  o ACTIVE          // asset is active, and is in the process
+  o CANCELLED       // Immutable.  Asset operation was cancelled
+  o SUSPENDED       // the prgoress is suspended, and can be resumed in the future time
+  o COMPLETE              // Immutable. the proces shas finisehded successfully
+  o COMPLETE_FALSE        // Immutable.  The process has finsished with some error
 }
 
 enum ApprovalState {
-  o WAITING
-  o CONSIDERING
-  o ACCEPTED
-  o REJECTED
-}
-
-enum CampaignState {
-  o INACTIVE
-  o ACTIVE
-  o REQUEST_COMPLETE
-  o COMPLETE
+  o NOT_SUBMITTED   // Campaign request is not submitted
+  o WAITING         // Campaign request was issued to the supplier, and waiting for a response.
+  o CONSIDERING     // The supplier have read the request, and it is considering it.
+  o ACCEPTED        // Immutable.  The request was accepted.
+  o REJECTED        // Immutable.  The request was rejected.
 }
 
 asset BankAccount identified by entityId {
@@ -61,5 +40,6 @@ transaction SetAssetStatus {
 }
 
 transaction TransferFundToCampaign {
+  o String        entityId
   o String        campaignId
 }

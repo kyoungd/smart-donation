@@ -52,13 +52,15 @@ before((done) => {
     });
 });
 
-async function getCustomerCount(bnc) {
-    let results = await bnc.query('SelectAllCustomers');
-    return results.length;
+async function getParticipantCount(objectType) {
+    const fns = nsParticipant + "." + objectType;
+    const registry = await businessNetworkConnection.getParticipantRegistry(fns);
+    let item = await registry.getAll();
+    return item.length;
 }
 
-async function getObject(objectType, entityId) {
-    const fns = nsObject + "." + objectType;
+async function getObject(objectGroup, objectType, entityId) {
+    const fns = NS + "." + objectGroup + "." + objectType;
     const registry = await businessNetworkConnection.getAssetRegistry(fns);
     let item = await registry.get(entityId);
     return item;
@@ -376,7 +378,7 @@ async function CreateProduct(entity) {
         item.description = entity.description;
         item.name = entity.name;
         item.note = entity.note;
-        item.productStatus = entity.productStatus;
+        item.status = entity.status;
         item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
         item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
         item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
@@ -403,7 +405,7 @@ async function CreateAProduct(name, campaignId, campaignRequestId, customerId, d
             description: "Approved Advertisement",
             name,
             note: "Adverting link...",
-            productStatus: "SUBMITTED",
+            status: "ACTIVE",
             campaignId,
             customerId,
             donationId,
@@ -427,6 +429,7 @@ describe('testing utilities', ()=> {
     let campaignId1 = "";
     let campaignRequestId1, campaignRequestId2, campaignRequestId3, campaignRequestId4;
     let productId1, productId2, productId3, productId4;
+    let transferFundId1;
 
     it('create a customer', async() => {
         try {
@@ -453,7 +456,7 @@ describe('testing utilities', ()=> {
     it('create a donor', async() => {
         try {
             donorId1 = await createADonor(factory, "first-donor", customerId1, bankAccountId1);
-            let noCustomers = await getCustomerCount(businessNetworkConnection);
+            let noCustomers = await getParticipantCount("Customer");
             assert.equal(noCustomers, 1, "after donor insertion, the customer count should remain at 1");
             let donor = await getParticipant("Donor", donorId1);
             assert.deepEqual(donor.customer.$identifier, customerId1, "error: mismatched customer in donor")
@@ -497,7 +500,7 @@ describe('testing utilities', ()=> {
         try {
             campaignRequestId1 = await CreateACampaignRequest(factory, "first-campaign-request", 
                 campaignId1, customerId1, donationId1, donorId1, supplierId1);
-            let cr = await getObject("CampaignRequest", campaignRequestId1);
+            let cr = await getObject("object", "CampaignRequest", campaignRequestId1);
             assert.deepEqual(cr.campaign.$identifier, campaignId1, "first-campaign-request campaignId mismatch.");
             assert.deepEqual(cr.customer.$identifier, customerId1, "first-campaign-request customerId mismatch.");
             assert.deepEqual(cr.donation.$identifier, donationId1, "first-campaign-request donationId mismatch.");
@@ -516,33 +519,27 @@ describe('testing utilities', ()=> {
     })
 
     it('create 4 products', async()=> {
-        productId1 = CreateAProduct("Product 1", campaignId1, campaignRequestId1, customerId1, donationId1, donorId1, supplierId1);
-        productId2 = CreateAProduct("Product 2", campaignId1, campaignRequestId2, customerId1, donationId1, donorId1, supplierId1);
-        productId3 = CreateAProduct("Product 3", campaignId1, campaignRequestId3, customerId1, donationId1, donorId1, supplierId2);
-        productId4 = CreateAProduct("Product 4", campaignId1, campaignRequestId4, customerId1, donationId1, donorId1, supplierId2);
+        productId1 = await CreateAProduct("Product 1", campaignId1, campaignRequestId1, customerId1, donationId1, donorId1, supplierId1);
+        productId2 = await CreateAProduct("Product 2", campaignId1, campaignRequestId2, customerId1, donationId1, donorId1, supplierId1);
+        productId3 = await CreateAProduct("Product 3", campaignId1, campaignRequestId3, customerId1, donationId1, donorId1, supplierId2);
+        productId4 = await CreateAProduct("Product 4", campaignId1, campaignRequestId4, customerId1, donationId1, donorId1, supplierId2);
     })
 
-    it('disable a customer', async () => {
-        try {
-            const participantId = customerId1;
-            if (participantId !== '') {
-                const methodName = 'SetParticipantStatus';
-                let transaction = factory.newTransaction(NS+'.util', methodName);
-                transaction.setPropertyValue('participantId', participantId);
-                transaction.setPropertyValue('status', 'INACTIVE');
-                transaction.setPropertyValue('entityType', 'Customer');
-                await businessNetworkConnection.submitTransaction(transaction);
-                let list2 = await businessNetworkConnection.query('SelectAllCustomers');
-                if (list2.length <= 0)
-                    assert(false, 'no customers in the registry 2');
-                assert.equal(list2[0].status, 'INACTIVE');
-            }
-            else 
-                assert(false, 'no customer to test.');
-        } catch(err){
-            console.log(err);
-            assert(false, err);
-        }
+    it('do transfer fund', async() => {
+        transferFundId1 = newid();
+        const methodName = 'TransferFundToCampaign';
+        let transaction = factory.newTransaction(nsUtil, methodName);
+        transaction.setPropertyValue("entityId", transferFundId1);
+        transaction.setPropertyValue("campaignId", campaignId1);
+        await businessNetworkConnection.submitTransaction(transaction);
+
+        let item = await getObject("object", "TransferFund", transferFundId1);
+        assert.equal(transferFundId1, item.entityId, "no TransferFund entry in the registry");
+
+//        let list2 = await businessNetworkConnection.query('SelectAllTransferFunds');
+        // if (list2.length <= 0)
+        //     assert(false, 'no TransferFund entry in the registry');
+        // assert.equal(list2[0].status, 'NOT_STARTED');
     })
 
     async function setParticiapantStatus (participantId, queryOne, entityType, entityStatus){
@@ -553,24 +550,57 @@ describe('testing utilities', ()=> {
             transaction.setPropertyValue('entityType', entityType);
             transaction.setPropertyValue('status', entityStatus);
             await businessNetworkConnection.submitTransaction(transaction);
-            let entity = await businessNetworkConnection.query(queryOne, { participantId });
+            let entity = await getParticipant(entityType, participantId);
+            // let entity = await businessNetworkConnection.query(queryOne, { participantId });
             if (!entity)
                 assert(false, 'no participant in the registry 2');
             else
-                assert.equal(entity[0].status, 'INACTIVE');
+                assert.equal(entity.status, entityStatus);
         }
         else
             assert(false, 'no participant in the registry 1')
     }
 
+    async function setAssetStatus(entityId, queryOne, entityGroup, entityType, entityStatus) {
+        if (entityId) {
+            const methodName = 'SetAssetStatus';
+            let transaction = factory.newTransaction(NS+'.util', methodName);
+            transaction.setPropertyValue('entityId', entityId);
+            transaction.setPropertyValue('entityGroup', entityGroup);
+            transaction.setPropertyValue('entityType', entityType);
+            transaction.setPropertyValue('status', entityStatus);
+            await businessNetworkConnection.submitTransaction(transaction);
+            let entity = await getObject(entityGroup, entityType, entityId);
+            if (!entity)
+                assert(false, 'no asset in the registry 1.');
+            else
+                assert.equal(entity.status, entityStatus);
+        }
+        else
+            assert(false, 'no asset in the registry 2.');
+    }
+
+    it('disable a customer', async () => {
+        try {
+            let participantId = customerId1;
+
+            let queryOne = '';
+            let entityType = 'Customer';
+            let entityStatus = 'SUSPENDED';
+            await setParticiapantStatus (participantId, queryOne, entityType, entityStatus);
+        } catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    })
+
     it('disable a donor', async()=> {
         try {
-            let customerId = customerId1;
             let participantId = donorId1;
-                
-            let queryOne = 'SelectADonor';
+
+            let queryOne = '';
             let entityType = 'Donor';
-            let entityStatus = 'INACTIVE';
+            let entityStatus = 'SUSPENDED';
             await setParticiapantStatus (participantId, queryOne, entityType, entityStatus);
         }
         catch(err){
@@ -584,9 +614,9 @@ describe('testing utilities', ()=> {
             let customerId = customerId1;
             let participantId = supplierId1;
                 
-            let queryOne = 'SelectASupplier';
+            let queryOne = '';
             let entityType = 'Supplier';
-            let entityStatus = 'INACTIVE';
+            let entityStatus = 'SUSPENDED';
             await setParticiapantStatus (participantId, queryOne, entityType, entityStatus);
         }
         catch(err){
@@ -595,32 +625,41 @@ describe('testing utilities', ()=> {
         }
     });
 
-    async function setAssetStatus(entityId, queryOne, entityGroup, entityType, entityStatus) {
-        if (entityId) {
-            const methodName = 'SetAssetStatus';
-            let transaction = factory.newTransaction(NS+'.util', methodName);
-            transaction.setPropertyValue('entityId', entityId);
-            transaction.setPropertyValue('entityGroup', entityGroup);
-            transaction.setPropertyValue('entityType', entityType);
-            transaction.setPropertyValue('status', entityStatus);
-            await businessNetworkConnection.submitTransaction(transaction);
-            let entity = await businessNetworkConnection.query(queryOne, { entityId });
-            if (!entity)
-                assert(false, 'no asset in the registry 1.');
-            else
-                assert.equal(entity[0].status, entityStatus);
-        }
-        else
-            assert(false, 'no asset in the registry 2.');
-    }
-
-    it('disable a bank account', async()=> {
+    it('disable a Bank Account', async()=> {
         try {
             let queryOne        = 'SelectABankAccount';
             let entityGroup     = 'util';
             let entityType      = 'BankAccount';
-            let entityStatus    = 'INACTIVE';
+            let entityStatus    = 'SUSPENDED';
             await setAssetStatus(bankAccountId2, queryOne, entityGroup, entityType, entityStatus);
+        }
+        catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+    it('disable a Campaign', async()=> {
+        try {
+            let queryOne        = '';
+            let entityGroup     = 'object';
+            let entityType      = 'Campaign';
+            let entityStatus    = 'SUSPENDED';
+            await setAssetStatus(campaignId1, queryOne, entityGroup, entityType, entityStatus);
+        }
+        catch(err){
+            console.log(err);
+            assert(false, err);
+        }
+    });
+
+    it('disable a Product', async()=> {
+        try {
+            let queryOne        = '';
+            let entityGroup     = 'object';
+            let entityType      = 'Product';
+            let entityStatus    = 'SUSPENDED';
+            await setAssetStatus(productId1, queryOne, entityGroup, entityType, entityStatus);
         }
         catch(err){
             console.log(err);

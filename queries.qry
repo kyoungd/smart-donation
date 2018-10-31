@@ -82,23 +82,35 @@ query SelectABankAccount {
     WHERE (entityId == _$entityId)
 }
 
+query SelectAllCampaignRequest {
+  description: "Return all CampaignRequest related to a campaign"
+  statement:
+    SELECT org.acme.smartdonation.object.CampaignRequest
+}
+
 query SelectTransferFundCampaignRequest {
   description: "Return all CampaignRequest related to a campaign"
   statement:
     SELECT org.acme.smartdonation.object.CampaignRequest
-    WHERE (campaign.$identifier == _$id AND status == _$entityState AND requestStatus == _$requestState)
+    WHERE (campaign == _$campaign)
 }
 
 query SelectTransferFundProduct {
   description: "Return all products that is related to a campaign"
   statement:
     SELECT org.acme.smartdonation.object.Product
-    WHERE (campaign.$identifier == _$id AND productStatus == _$productStatus AND approvalStatus == _$approvalStatus)
+    WHERE (campaign == _$campaign)
+}
+
+query SelectAllProduct {
+  description: "Return all products that is related to a campaign"
+  statement:
+    SELECT org.acme.smartdonation.object.Product
 }
 
 query SelectTransferFund {
   description: "Return all transferFund that is related to a campaign"
   statement:
-    SELECT org.acme.smartdonation.objects.TransferFund
-    WHERE (campaign.$identifier == _$id)
+    SELECT org.acme.smartdonation.object.TransferFund
+    WHERE (campaign == _$id)
 }
