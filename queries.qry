@@ -2,91 +2,91 @@
  * All named queries in this file
  **/
 
- // Returns all flights 
- query AllFlights {
-   description: "Returns all flights in the registry"
-   statement:  
-      SELECT  org.acme.airline.flight.Flight
- }
+//  // Returns all flights 
+//  query AllFlights {
+//    description: "Returns all flights in the registry"
+//    statement:  
+//       SELECT  org.acme.airline.flight.Flight
+//  }
 
- query FlightByNumber {
-   description: "Returns all flights in the registry"
-   statement:  
-      SELECT  org.acme.airline.flight.Flight
-  	  WHERE   (flightNumber == _$flight_number)
-  } 
+//  query FlightByNumber {
+//    description: "Returns all flights in the registry"
+//    statement:  
+//       SELECT  org.acme.airline.flight.Flight
+//   	  WHERE   (flightNumber == _$flight_number)
+//   } 
 
-  query FlightsOriginAndDestination {
-   description: "Returns all flights in the registry"
-   statement:  
-      SELECT  org.acme.airline.flight.Flight
-  	  WHERE   (route.origin == _$origin_airport AND route.destination  == _$destination_airport )
-  }
+//   query FlightsOriginAndDestination {
+//    description: "Returns all flights in the registry"
+//    statement:  
+//       SELECT  org.acme.airline.flight.Flight
+//   	  WHERE   (route.origin == _$origin_airport AND route.destination  == _$destination_airport )
+//   }
 
- query FlightsOriginAndDestinationOrdered {
-   description: "Returns all flights in the registry"
-   statement:  
-      SELECT  org.acme.airline.flight.Flight
-  	  WHERE   (route.origin == _$origin_airport AND route.destination  == _$destination_airport)
-      ORDER BY [flightNumber ASC]
-  } 
+//  query FlightsOriginAndDestinationOrdered {
+//    description: "Returns all flights in the registry"
+//    statement:  
+//       SELECT  org.acme.airline.flight.Flight
+//   	  WHERE   (route.origin == _$origin_airport AND route.destination  == _$destination_airport)
+//       ORDER BY [flightNumber ASC]
+//   } 
 
-  query AllAircrafts {
-  description: "Returns all aircrafts in the registry"
-  statement:  
-    SELECT  org.acme.airline.aircraft.Aircraft
-}
+//   query AllAircrafts {
+//   description: "Returns all aircrafts in the registry"
+//   statement:  
+//     SELECT  org.acme.airline.aircraft.Aircraft
+// }
 
-query SelectAllCustomers {
-  description: "Return all customers in the registry"
-  statement:
-    SELECT org.acme.smartdonation.participant.Customer
-}
+// query SelectAllCustomers {
+//   description: "Return all customers in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.participant.Customer
+// }
 
-query SelectAllDonors {
-  description: "Return all donors in the registry"
-  statement:
-    SELECT org.acme.smartdonation.participant.Donor 
-}
+// query SelectAllDonors {
+//   description: "Return all donors in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.participant.Donor 
+// }
 
-query SelectADonor {
-  description: "Return a donor in the registry"
-  statement:
-    SELECT org.acme.smartdonation.participant.Donor 
-    WHERE (participantId == _$participantId)
-}
+// query SelectADonor {
+//   description: "Return a donor in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.participant.Donor 
+//     WHERE (participantId == _$participantId)
+// }
 
-query SelectAllSuppliers {
-  description: "Return all suppliers in the registry"
-  statement:
-    SELECT org.acme.smartdonation.participant.Supplier 
-}
+// query SelectAllSuppliers {
+//   description: "Return all suppliers in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.participant.Supplier 
+// }
 
-query SelectASupplier {
-  description: "Return a supplier in the registry"
-  statement:
-    SELECT org.acme.smartdonation.participant.Supplier 
-    WHERE (participantId == _$participantId)
-}
+// query SelectASupplier {
+//   description: "Return a supplier in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.participant.Supplier 
+//     WHERE (participantId == _$participantId)
+// }
 
-query SelectAllBankAccounts {
-  description: "Return all bank accounts in the registry"
-  statement:
-    SELECT org.acme.smartdonation.util.BankAccount 
-}
+// query SelectAllBankAccounts {
+//   description: "Return all bank accounts in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.util.BankAccount 
+// }
 
-query SelectABankAccount {
-  description: "Return a bank accounts in the registry"
-  statement:
-    SELECT org.acme.smartdonation.util.BankAccount 
-    WHERE (entityId == _$entityId)
-}
+// query SelectABankAccount {
+//   description: "Return a bank accounts in the registry"
+//   statement:
+//     SELECT org.acme.smartdonation.util.BankAccount 
+//     WHERE (entityId == _$entityId)
+// }
 
-query SelectAllCampaignRequest {
-  description: "Return all CampaignRequest related to a campaign"
-  statement:
-    SELECT org.acme.smartdonation.object.CampaignRequest
-}
+// query SelectAllCampaignRequest {
+//   description: "Return all CampaignRequest related to a campaign"
+//   statement:
+//     SELECT org.acme.smartdonation.object.CampaignRequest
+// }
 
 query SelectTransferFundCampaignRequest {
   description: "Return all CampaignRequest related to a campaign"
@@ -102,15 +102,65 @@ query SelectTransferFundProduct {
     WHERE (campaign == _$campaign)
 }
 
-query SelectAllProduct {
-  description: "Return all products that is related to a campaign"
-  statement:
-    SELECT org.acme.smartdonation.object.Product
-}
-
 query SelectTransferFund {
   description: "Return all transferFund that is related to a campaign"
   statement:
     SELECT org.acme.smartdonation.object.TransferFund
     WHERE (campaign == _$id)
 }
+
+query Donor_GetDonation {
+  description: "Return all donation that is related to a donor"
+  statement:
+    SELECT org.acme.smartdonation.object.Donation
+    WHERE (donor == _$donor)
+}
+
+query Donor_GetProduct {
+  description: "Return all product that is related to a donor"
+  statement:
+    SELECT org.acme.smartdonation.object.Product
+    WHERE (donor == _$donor)
+}
+
+query Donor_GetCampaignRequest {
+  description: "Return all campaign request that is related to a donor"
+  statement:
+    SELECT org.acme.smartdonation.object.CampaignRequest
+    WHERE (donor == _$donor)
+}
+
+query Customer_GetCampaign {
+  description: "Return all campaign for a customer"
+  statement:
+    SELECT org.acme.smartdonation.object.Campaign
+    WHERE (customer == _$customer)
+}
+
+query Customer_GetCampaignRequest {
+  description: "Return all campaign reqeust for a customer"
+  statement:
+    SELECT org.acme.smartdonation.object.CampaignRequest
+    WHERE (customer == _$customer)
+}
+
+query Customer_GetProduct {
+  description: "Return all product for a customer"
+  statement:
+    SELECT org.acme.smartdonation.object.Product
+    WHERE (customer == _$customer)
+}
+
+// query Supplier_GetCampaignRequest {
+//   description: "Return all campaign request for a supplier"
+//   statement:
+//     SELECT org.acme.smartdonation.object.CampaignRequest
+//     WHERE (supplier == _$supplier)
+// }
+
+// query Supplier_GetProduct {
+//   description: "Return all product for a supplier"
+//   statement:
+//     SELECT org.acme.smartdonation.object.Product
+//     WHERE (supplier == _$supplier)
+// }

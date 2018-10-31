@@ -3,7 +3,7 @@ namespace org.acme.smartdonation.util
 enum EntityState {
   o NOT_STARTED     // asset is inactive.  It hasn't started yet
   o ACTIVE          // asset is active, and is in the process
-  o CANCELLED       // Immutable.  Asset operation was cancelled
+  o CANCELED        // Immutable.  Asset operation was cancelled
   o SUSPENDED       // the prgoress is suspended, and can be resumed in the future time
   o COMPLETE              // Immutable. the proces shas finisehded successfully
   o COMPLETE_FALSE        // Immutable.  The process has finsished with some error
@@ -11,7 +11,8 @@ enum EntityState {
 
 enum ApprovalState {
   o NOT_SUBMITTED   // Campaign request is not submitted
-  o WAITING         // Campaign request was issued to the supplier, and waiting for a response.
+  o CANCELED        // Immutable.  Asset operation was cancelled
+  o SUBMITTED       // Campaign request was issued to the supplier, and waiting for a response.
   o CONSIDERING     // The supplier have read the request, and it is considering it.
   o ACCEPTED        // Immutable.  The request was accepted.
   o REJECTED        // Immutable.  The request was rejected.

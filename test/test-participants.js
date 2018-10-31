@@ -24,21 +24,6 @@ var businessNetworkConnection = {}
 var bnDefinition = {}
 var factory = {}
 
-function newid() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-          .toString(16)
-          .substring(1);
-    }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-}
-
-function emailId() {
-    const high = 9999;
-    const low = 1000;
-    return (Math.random() * (high - low) + low).toString();
-}
-
 // Synchronous call so that connections can be established
 // Executed before the describe{} gets executed
 before((done) => {
@@ -52,12 +37,15 @@ before((done) => {
     });
 });
 
-async function getParticipantCount(objectType) {
-    const fns = nsParticipant + "." + objectType;
-    const registry = await businessNetworkConnection.getParticipantRegistry(fns);
-    let item = await registry.getAll();
-    return item.length;
-}
+let customerId1 = "";
+let donorId1 = "";
+let bankAccountId1, bankAccountId2, bankAccountId3, bankAccountId4, bankAccountId5;
+let supplierId1, supplierId2;
+let donationId1 = "";
+let campaignId1 = "";
+let campaignRequestId1, campaignRequestId2, campaignRequestId3, campaignRequestId4;
+let productId1, productId2, productId3, productId4;
+let transferFundId1;
 
 async function getObject(objectGroup, objectType, entityId) {
     const fns = NS + "." + objectGroup + "." + objectType;
@@ -73,62 +61,132 @@ async function getParticipant(objectType, entityId) {
     return item;
 }
 
-async function createBankAccount(factory, entity) {
-    try {
-        let bankAccountId = newid();
-        let namespace = NS + '.util';
-        let fns = namespace + '.BankAccount';
-        let bankAccount = factory.newResource(namespace, 'BankAccount', bankAccountId);
-        bankAccount.entityId = bankAccountId;
-        bankAccount.accountNumber = entity.accountNumber;
-        bankAccount.routingNumber = entity.routingNumber;
-        bankAccount.status = entity.status;
-        bankAccount.note = entity.note;
-        bankAccount.createdOn = entity.createdOn;
-        const registry = await businessNetworkConnection.getAssetRegistry(fns);
-        await registry.add(bankAccount);
-        return bankAccount.entityId;
-    }
-    catch (err) {
-        throw new Error('createBankAccount(): ' + err);
-    }
-}
 
-async function createABankAccount(factory) {
-    let timeStampNow = new Date();
-    let entity = {
-        accountNumber: newid(),
-        routingNumber: newid(),
-        status: "ACTIVE",
-        note: "a lot of things to say",
-        createdOn: timeStampNow
+describe('testing utilities', ()=> {
+
+    function newid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+              .toString(16)
+              .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
-    let bankAccountId = await createBankAccount(factory, entity);
-    return bankAccountId;
-}
-
-function setParticipantBaseValues(factory, entityType, entity) {
-    let participantId = newid();
-    let namespace = NS + '.participant';
-    let access = factory.newConcept(namespace, 'RoleAccess');
-    access.isRead = entity.isRead;
-    access.isWrite = entity.isWrite;
-    access.isAccountOnly = entity.isAccountOnly;
-    access.isDepartmentOnly = entity.isDepartmentOnly;
-    access.isAll = entity.isAll;
-    let baseEntity = factory.newResource(namespace, entityType, participantId);
-    baseEntity.participantId = participantId;
-    baseEntity.phoneNumber = entity.phoneNumber;
-    baseEntity.email = entity.email;
-    baseEntity.note = entity.note;
-    baseEntity.access = access;
-    baseEntity.status = entity.status;
-    return baseEntity;
-}
-
-async function createACustomer(factory, name) {
-    try {
+    
+    function emailId() {
+        const high = 9999;
+        const low = 1000;
+        return (Math.random() * (high - low) + low).toString();
+    }
+    
+    async function getParticipantCount(objectType) {
+        const fns = nsParticipant + "." + objectType;
+        const registry = await businessNetworkConnection.getParticipantRegistry(fns);
+        let item = await registry.getAll();
+        return item.length;
+    }
+    
+    async function createBankAccount(factory, entity) {
+        try {
+            let bankAccountId = newid();
+            let namespace = NS + '.util';
+            let fns = namespace + '.BankAccount';
+            let bankAccount = factory.newResource(namespace, 'BankAccount', bankAccountId);
+            bankAccount.entityId = bankAccountId;
+            bankAccount.accountNumber = entity.accountNumber;
+            bankAccount.routingNumber = entity.routingNumber;
+            bankAccount.status = entity.status;
+            bankAccount.note = entity.note;
+            bankAccount.createdOn = entity.createdOn;
+            const registry = await businessNetworkConnection.getAssetRegistry(fns);
+            await registry.add(bankAccount);
+            return bankAccount.entityId;
+        }
+        catch (err) {
+            throw new Error('createBankAccount(): ' + err);
+        }
+    }
+    
+    async function createABankAccount(factory) {
+        let timeStampNow = new Date();
+        let entity = {
+            accountNumber: newid(),
+            routingNumber: newid(),
+            status: "ACTIVE",
+            note: "a lot of things to say",
+            createdOn: timeStampNow
+        }
+        let bankAccountId = await createBankAccount(factory, entity);
+        return bankAccountId;
+    }
+    
+    function setParticipantBaseValues(factory, entityType, entity) {
+        let participantId = newid();
         let namespace = NS + '.participant';
+        let access = factory.newConcept(namespace, 'RoleAccess');
+        access.isRead = entity.isRead;
+        access.isWrite = entity.isWrite;
+        access.isAccountOnly = entity.isAccountOnly;
+        access.isDepartmentOnly = entity.isDepartmentOnly;
+        access.isAll = entity.isAll;
+        let baseEntity = factory.newResource(namespace, entityType, participantId);
+        baseEntity.participantId = participantId;
+        baseEntity.phoneNumber = entity.phoneNumber;
+        baseEntity.email = entity.email;
+        baseEntity.note = entity.note;
+        baseEntity.access = access;
+        baseEntity.status = entity.status;
+        return baseEntity;
+    }
+    
+    async function createACustomer(factory, name) {
+        try {
+            let namespace = NS + '.participant';
+            let entity = {
+                isRead: true,
+                isWrite: true,
+                isAccountOnly: true,
+                isDepartmentOnly: false,
+                isAll: true,
+                phoneNumber: "123-123-1234",
+                email: "c-" + emailId() + "@customer.com",
+                note: "a lot of things to say",
+                status: "ACTIVE",
+                name
+            }
+            let item = setParticipantBaseValues(factory, 'Customer', entity);
+            item.name = entity.name;
+    
+            let fns = namespace + '.Customer';
+            const registry = await businessNetworkConnection.getParticipantRegistry(fns);
+            await registry.add(item);
+            return item.participantId;
+        }
+        catch (err) {
+            throw new Error('CreateCustomer(): ' + err);
+        }
+    }
+    
+    async function createDonor(factory, entity) {
+        try {
+            let namespace = NS + '.participant';
+            let fns = namespace + '.Donor';
+    
+            let item = setParticipantBaseValues(factory, 'Donor', entity);
+            item.name = entity.name;
+    
+            item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
+            item.bankAccount = factory.newRelationship(NS + '.util', 'BankAccount', entity.bankAccountId);
+            const registry = await businessNetworkConnection.getParticipantRegistry(fns);
+            await registry.add(item);
+            return item.participantId;
+        }
+        catch (err) {
+            throw new Error('createDonor(): ' + err);
+        }
+    }
+    
+    async function createADonor(factory, name, customerId, bankAccountId) {
         let entity = {
             isRead: true,
             isWrite: true,
@@ -136,275 +194,181 @@ async function createACustomer(factory, name) {
             isDepartmentOnly: false,
             isAll: true,
             phoneNumber: "123-123-1234",
-            email: "c-" + emailId() + "@customer.com",
+            email: "d-" + emailId() + "@donor.com",
             note: "a lot of things to say",
             status: "ACTIVE",
-            name
+            name,
+            customerId,
+            bankAccountId,
         }
-        let item = setParticipantBaseValues(factory, 'Customer', entity);
-        item.name = entity.name;
-
-        let fns = namespace + '.Customer';
-        const registry = await businessNetworkConnection.getParticipantRegistry(fns);
-        await registry.add(item);
-        return item.participantId;
+        let donorId = await createDonor(factory, entity);
+        return donorId;
     }
-    catch (err) {
-        throw new Error('CreateCustomer(): ' + err);
+    
+    async function createSupplier(factory, entity) {
+        try {
+            let namespace = NS + '.participant';
+            let fns = namespace + '.Supplier';
+    
+            let item = setParticipantBaseValues(factory, 'Supplier', entity);
+            item.name = entity.name;
+    
+            item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
+            item.bankAccount = factory.newRelationship(NS + '.util', 'BankAccount', entity.bankAccountId);
+            const registry = await businessNetworkConnection.getParticipantRegistry(fns);
+            await registry.add(item);
+            return item.participantId;
+        }
+        catch (err) {
+            throw new Error('createSupplier(): ' + err);
+        }
     }
-}
-
-async function createDonor(factory, entity) {
-    try {
-        let namespace = NS + '.participant';
-        let fns = namespace + '.Donor';
-
-        let item = setParticipantBaseValues(factory, 'Donor', entity);
-        item.name = entity.name;
-
-        item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
-        item.bankAccount = factory.newRelationship(NS + '.util', 'BankAccount', entity.bankAccountId);
-        const registry = await businessNetworkConnection.getParticipantRegistry(fns);
-        await registry.add(item);
-        return item.participantId;
+    
+    async function createASupplier(factory, name, customerId, bankAccountId) {
+        let entity = {
+            isRead: true,
+            isWrite: true,
+            isAccountOnly: true,
+            isDepartmentOnly: false,
+            isAll: true,
+            phoneNumber: "123-123-1234",
+            email: "s-" + emailId() + "@donor.com",
+            note: "a lot of things to say",
+            status: "ACTIVE",
+            name,
+            customerId,
+            bankAccountId,
+        }
+        let supplierId = await createSupplier(factory, entity);
+        return supplierId;
     }
-    catch (err) {
-        throw new Error('createDonor(): ' + err);
+    
+    async function createDonation(factory, entity) {
+        try {
+            let fns = nsObject + '.Donation';
+            let item = factory.newResource(nsObject, 'Donation', entity.entityId);
+            item.entityId = entity.entityId;
+            item.name = entity.name;
+            item.description = entity.description;
+            item.amount = entity.amount;
+            item.status = entity.status;
+            item.donateOn = entity.donateOn;
+            item.availableOn = entity.availableOn;
+            item.rules = entity.rules.slice(0);
+            item.note = entity.note;
+            item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
+            item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
+            item.bankAccount = factory.newRelationship(nsUtil, 'BankAccount', entity.bankAccountId);
+    
+            const registry = await businessNetworkConnection.getAssetRegistry(fns);
+            await registry.add(item);
+            return item.entityId;
+        }
+        catch (err) {
+            throw new Error('--createDonation(): ' + err);
+        }
     }
-}
-
-async function createADonor(factory, name, customerId, bankAccountId) {
-    let entity = {
-        isRead: true,
-        isWrite: true,
-        isAccountOnly: true,
-        isDepartmentOnly: false,
-        isAll: true,
-        phoneNumber: "123-123-1234",
-        email: "d-" + emailId() + "@donor.com",
-        note: "a lot of things to say",
-        status: "ACTIVE",
-        name,
-        customerId,
-        bankAccountId,
-    }
-    let donorId = await createDonor(factory, entity);
-    return donorId;
-}
-
-async function createSupplier(factory, entity) {
-    try {
-        let namespace = NS + '.participant';
-        let fns = namespace + '.Supplier';
-
-        let item = setParticipantBaseValues(factory, 'Supplier', entity);
-        item.name = entity.name;
-
-        item.customer = factory.newRelationship(namespace, 'Customer', entity.customerId);
-        item.bankAccount = factory.newRelationship(NS + '.util', 'BankAccount', entity.bankAccountId);
-        const registry = await businessNetworkConnection.getParticipantRegistry(fns);
-        await registry.add(item);
-        return item.participantId;
-    }
-    catch (err) {
-        throw new Error('createSupplier(): ' + err);
-    }
-}
-
-async function createASupplier(factory, name, customerId, bankAccountId) {
-    let entity = {
-        isRead: true,
-        isWrite: true,
-        isAccountOnly: true,
-        isDepartmentOnly: false,
-        isAll: true,
-        phoneNumber: "123-123-1234",
-        email: "s-" + emailId() + "@donor.com",
-        note: "a lot of things to say",
-        status: "ACTIVE",
-        name,
-        customerId,
-        bankAccountId,
-    }
-    let supplierId = await createSupplier(factory, entity);
-    return supplierId;
-}
-
-async function createDonation(factory, entity) {
-    try {
-        let fns = nsObject + '.Donation';
-        let item = factory.newResource(nsObject, 'Donation', entity.entityId);
-        item.entityId = entity.entityId;
-        item.name = entity.name;
-        item.description = entity.description;
-        item.amount = entity.amount;
-        item.status = entity.status;
-        item.donateOn = entity.donateOn;
-        item.availableOn = entity.availableOn;
-        item.rules = entity.rules.slice(0);
-        item.note = entity.note;
-        item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
-        item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
-        item.bankAccount = factory.newRelationship(nsUtil, 'BankAccount', entity.bankAccountId);
-
-        const registry = await businessNetworkConnection.getAssetRegistry(fns);
-        await registry.add(item);
-        return item.entityId;
-    }
-    catch (err) {
-        throw new Error('--createDonation(): ' + err);
-    }
-}
-
-async function createADonation(factory, name, customerId, donorId, bankAccountId) {
-    let timeStampNow = new Date();
-    let entity = {
-        entityId: newid(),
-        description: "postive ad only donation",
-        donateOn: timeStampNow,
-        amount: 5000000,
-        availableOn: timeStampNow,
-        note: "a lot of things to say",
-        status: "ACTIVE",
-        name,
-        customerId,
-        donorId,
-        bankAccountId,
-        rules: ["must be humorous", "ads must be positive", "must focus on family value"],
-    }
-    let donationId = await createDonation(factory, entity);
-    return donationId;
-}
-
-async function createCampaign(factory, entity) {
-    try {
-        let fns = nsObject + '.Campaign';
-        let item = factory.newResource(nsObject, 'Campaign', entity.entityId);
-        item.entityId = entity.entityId;
-        item.name = entity.name;
-        item.description = entity.description;
-        item.amount = entity.amount;
-        item.status = entity.status;
-        item.createdOn = entity.createdOn;
-        item.createdOn = entity.createdOn;
-        item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
-        item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
-        item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
-        item.bankAccount = factory.newRelationship(nsUtil, 'BankAccount', entity.bankAccountId);
-
-        const registry = await businessNetworkConnection.getAssetRegistry(fns);
-        await registry.add(item);
-        return item.entityId;
-    }
-    catch (err) {
-        throw new Error('createCampaign(): ' + err);
-    }
-}
-
-async function CreateACampaign(factory, name, customerId, donorId, donationId, bankAccountId) {
-    let timeStampNow = new Date();
-    let entity = {
-        entityId: newid(),
-        description: "donor approved ad campaign",
-        amount: 5000000,
-        createdOn: timeStampNow,
-        status: "ACTIVE",
-        name,
-        customerId,
-        donorId,
-        donationId,
-        bankAccountId,
-    }
-    let campaignId = await createCampaign(factory, entity);
-    return campaignId;
-}
-
-async function CreateCampaignRequest(factory, entity) {
-    try {
-        let fns = nsObject + '.CampaignRequest';
-        let item = factory.newResource(nsObject, 'CampaignRequest', entity.entityId);
-        item.entityId = entity.entityId;
-        item.amount = entity.amount;
-        item.createdOn = entity.createdOn;
-        item.description = entity.description;
-        item.name = entity.name;
-        item.requestStatus = entity.requestStatus;
-        item.requestStatusReason = entity.requestStatusReason;
-        item.status = entity.status;
-        item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
-        item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
-        item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
-        item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
-        item.supplier = factory.newRelationship(nsParticipant, 'Supplier', entity.supplierId);
-
-        const registry = await businessNetworkConnection.getAssetRegistry(fns);
-        await registry.add(item);
-        return item.entityId;
-    }
-    catch (err) {
-        throw new Error('CreateCampaignRequest(): ' + err);
-    }
-}
-
-async function CreateACampaignRequest(factory, name, campaignId, customerId, donationId, donorId, supplierId) {
-    let timeStampNow = new Date();
-    let entity = {
-        entityId: newid(),
-        amount: 5000000,
-        createdOn: timeStampNow,
-        description: "donor approved ad campaign",
-        name,
-        requestStatus: "WAITING",
-        requestStatusReason: "...",
-        status: "ACTIVE",
-        campaignId,
-        customerId,
-        donationId,
-        donorId,
-        supplierId
-    }
-    let campaignRequestId = await CreateCampaignRequest(factory, entity);
-    return campaignRequestId;
-}
-
-async function CreateProduct(entity) {
-    try {
-        let fns = nsObject + '.Product';
-        let item = factory.newResource(nsObject, 'Product', entity.entityId);
-        item.entityId = entity.entityId;
-        item.approvalResponse = entity.approvalResponse;
-        item.approvalStatus = entity.approvalStatus;
-        item.createdOn = entity.createdOn;
-        item.description = entity.description;
-        item.name = entity.name;
-        item.note = entity.note;
-        item.status = entity.status;
-        item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
-        item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
-        item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
-        item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
-        item.supplier = factory.newRelationship(nsParticipant, 'Supplier', entity.supplierId);
-
-        const registry = await businessNetworkConnection.getAssetRegistry(fns);
-        await registry.add(item);
-        return item.entityId;
-    }
-    catch (err) {
-        throw new Error('CreateProduct(): ' + err);
-    }
-}
-
-async function CreateAProduct(name, campaignId, campaignRequestId, customerId, donationId, donorId, supplierId) {
-    try {
+    
+    async function createADonation(factory, name, customerId, donorId, bankAccountId) {
         let timeStampNow = new Date();
         let entity = {
             entityId: newid(),
-            approvalResponse: "OK",
-            approvalStatus: "ACCEPTED",
-            createdOn: timeStampNow,
-            description: "Approved Advertisement",
+            description: "postive ad only donation",
+            donateOn: timeStampNow,
+            amount: 5000000,
+            availableOn: timeStampNow,
+            note: "a lot of things to say",
+            status: "ACTIVE",
             name,
-            note: "Adverting link...",
+            customerId,
+            donorId,
+            bankAccountId,
+            rules: ["must be humorous", "ads must be positive", "must focus on family value"],
+        }
+        let donationId = await createDonation(factory, entity);
+        return donationId;
+    }
+    
+    async function createCampaign(factory, entity) {
+        try {
+            let fns = nsObject + '.Campaign';
+            let item = factory.newResource(nsObject, 'Campaign', entity.entityId);
+            item.entityId = entity.entityId;
+            item.name = entity.name;
+            item.description = entity.description;
+            item.amount = entity.amount;
+            item.status = entity.status;
+            item.createdOn = entity.createdOn;
+            item.createdOn = entity.createdOn;
+            item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
+            item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
+            item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
+            item.bankAccount = factory.newRelationship(nsUtil, 'BankAccount', entity.bankAccountId);
+    
+            const registry = await businessNetworkConnection.getAssetRegistry(fns);
+            await registry.add(item);
+            return item.entityId;
+        }
+        catch (err) {
+            throw new Error('createCampaign(): ' + err);
+        }
+    }
+    
+    async function CreateACampaign(factory, name, customerId, donorId, donationId, bankAccountId) {
+        let timeStampNow = new Date();
+        let entity = {
+            entityId: newid(),
+            description: "donor approved ad campaign",
+            amount: 5000000,
+            createdOn: timeStampNow,
+            status: "ACTIVE",
+            name,
+            customerId,
+            donorId,
+            donationId,
+            bankAccountId,
+        }
+        let campaignId = await createCampaign(factory, entity);
+        return campaignId;
+    }
+    
+    async function CreateCampaignRequest(factory, entity) {
+        try {
+            let fns = nsObject + '.CampaignRequest';
+            let item = factory.newResource(nsObject, 'CampaignRequest', entity.entityId);
+            item.entityId = entity.entityId;
+            item.amount = entity.amount;
+            item.createdOn = entity.createdOn;
+            item.description = entity.description;
+            item.name = entity.name;
+            item.requestStatus = entity.requestStatus;
+            item.requestStatusReason = entity.requestStatusReason;
+            item.status = entity.status;
+            item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
+            item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
+            item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
+            item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
+            item.supplier = factory.newRelationship(nsParticipant, 'Supplier', entity.supplierId);
+    
+            const registry = await businessNetworkConnection.getAssetRegistry(fns);
+            await registry.add(item);
+            return item.entityId;
+        }
+        catch (err) {
+            throw new Error('CreateCampaignRequest(): ' + err);
+        }
+    }
+    
+    async function CreateACampaignRequest(factory, name, campaignId, customerId, donationId, donorId, supplierId) {
+        let timeStampNow = new Date();
+        let entity = {
+            entityId: newid(),
+            amount: 5000000,
+            createdOn: timeStampNow,
+            description: "donor approved ad campaign",
+            name,
+            requestStatus: "SUBMITTED",
+            requestStatusReason: "...",
             status: "ACTIVE",
             campaignId,
             customerId,
@@ -412,25 +376,63 @@ async function CreateAProduct(name, campaignId, campaignRequestId, customerId, d
             donorId,
             supplierId
         }
-        let productId = await CreateProduct(entity);
-        return productId;
+        let campaignRequestId = await CreateCampaignRequest(factory, entity);
+        return campaignRequestId;
     }
-    catch (err) {
-        throw new Error('CreateAProduct(): ' + err);
+    
+    async function CreateProduct(entity) {
+        try {
+            let fns = nsObject + '.Product';
+            let item = factory.newResource(nsObject, 'Product', entity.entityId);
+            item.entityId = entity.entityId;
+            item.approvalResponse = entity.approvalResponse;
+            item.approvalStatus = entity.approvalStatus;
+            item.createdOn = entity.createdOn;
+            item.description = entity.description;
+            item.name = entity.name;
+            item.note = entity.note;
+            item.status = entity.status;
+            item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
+            item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
+            item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
+            item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
+            item.supplier = factory.newRelationship(nsParticipant, 'Supplier', entity.supplierId);
+    
+            const registry = await businessNetworkConnection.getAssetRegistry(fns);
+            await registry.add(item);
+            return item.entityId;
+        }
+        catch (err) {
+            throw new Error('CreateProduct(): ' + err);
+        }
     }
-}
-
-describe('testing utilities', ()=> {
-    let customerId1 = "";
-    let donorId1 = "";
-    let bankAccountId1, bankAccountId2, bankAccountId3, bankAccountId4, bankAccountId5;
-    let supplierId1, supplierId2;
-    let donationId1 = "";
-    let campaignId1 = "";
-    let campaignRequestId1, campaignRequestId2, campaignRequestId3, campaignRequestId4;
-    let productId1, productId2, productId3, productId4;
-    let transferFundId1;
-
+    
+    async function CreateAProduct(name, campaignId, campaignRequestId, customerId, donationId, donorId, supplierId) {
+        try {
+            let timeStampNow = new Date();
+            let entity = {
+                entityId: newid(),
+                approvalResponse: "OK",
+                approvalStatus: "ACCEPTED",
+                createdOn: timeStampNow,
+                description: "Approved Advertisement",
+                name,
+                note: "Adverting link...",
+                status: "ACTIVE",
+                campaignId,
+                customerId,
+                donationId,
+                donorId,
+                supplierId
+            }
+            let productId = await CreateProduct(entity);
+            return productId;
+        }
+        catch (err) {
+            throw new Error('CreateAProduct(): ' + err);
+        }
+    }
+    
     it('create a customer', async() => {
         try {
             customerId1 = await createACustomer(factory, "first-customer");
@@ -580,7 +582,7 @@ describe('testing utilities', ()=> {
             assert(false, 'no asset in the registry 2.');
     }
 
-    it('disable a customer', async () => {
+    it.skip('disable a customer', async () => {
         try {
             let participantId = customerId1;
 
@@ -594,7 +596,7 @@ describe('testing utilities', ()=> {
         }
     })
 
-    it('disable a donor', async()=> {
+    it.skip('disable a donor', async()=> {
         try {
             let participantId = donorId1;
 
@@ -609,7 +611,7 @@ describe('testing utilities', ()=> {
         }
     });
 
-    it('disable a supplier', async()=> {
+    it.skip('disable a supplier', async()=> {
         try {
             let customerId = customerId1;
             let participantId = supplierId1;
@@ -625,7 +627,7 @@ describe('testing utilities', ()=> {
         }
     });
 
-    it('disable a Bank Account', async()=> {
+    it.skip('disable a Bank Account', async()=> {
         try {
             let queryOne        = 'SelectABankAccount';
             let entityGroup     = 'util';
@@ -639,7 +641,7 @@ describe('testing utilities', ()=> {
         }
     });
 
-    it('disable a Campaign', async()=> {
+    it.skip('disable a Campaign', async()=> {
         try {
             let queryOne        = '';
             let entityGroup     = 'object';
@@ -653,7 +655,7 @@ describe('testing utilities', ()=> {
         }
     });
 
-    it('disable a Product', async()=> {
+    it.skip('disable a Product', async()=> {
         try {
             let queryOne        = '';
             let entityGroup     = 'object';
@@ -667,4 +669,144 @@ describe('testing utilities', ()=> {
         }
     });
 
-})
+});
+
+describe('testing queries', ()=> {
+
+    const getItemSummary = (group, items, type) => {
+        let summary = {
+            donationId: "",
+            count: 0,
+            accepted: 0,
+            rejected: 0,
+            canceled: 0,
+        }
+
+        summary.donationId = group.entityId;
+        summary.count = items.reduce((count, p) => group.entityId == p[type].$identifier ? count+1 : count, 0);
+        summary.accepted = items.reduce((count, p)=> group.entityId == p[type].$identifier && p.approvalStatus == "ACCEPTED" ? count+1 : count, 0);
+        summary.rejected = items.reduce((count, p)=> group.entityId == p[type].$identifier && p.approvalStatus == "REJECTED" ? count+1 : count, 0);
+        summary.canceled = items.reduce((count, p)=> group.entityId == p[type].$identifier && p.approvalStatus == "CANCELED" ? count+1 : count, 0);
+        return summary;
+    }
+
+    const getSummary = (productSummary, crSummary) => {
+        let data = {
+            total: crSummary.count - crSummary.canceled,
+            accepted: productSummary.accepted,
+            rejected: productSummary.rejected,
+            waiting: crSummary.count - crSummary.canceled - productSummary.accepted - productSummary.rejected,
+        }
+        return data;
+    }
+
+    it ('query donor campaign', async () => {
+        try {
+            /*
+                enum ApprovalState {
+                o NOT_SUBMITTED   // Campaign request is not submitted
+                o SUBMITTED       // Campaign request was issued to the supplier, and waiting for a response.
+                o CANCELED        // Immutable.  Asset operation was cancelled
+                o CONSIDERING     // The supplier have read the request, and it is considering it.
+                o ACCEPTED        // Immutable.  The request was accepted.
+                o REJECTED        // Immutable.  The request was rejected.
+                }
+            */
+            let donor = await getParticipant("Donor", donorId1);
+            let donations = await businessNetworkConnection.query("Donor_GetDonation", { donor: donor.toURI() });
+            let products = await businessNetworkConnection.query("Donor_GetProduct", { donor: donor.toURI() });
+            let campaignRequests = await businessNetworkConnection.query("Donor_GetCampaignRequest", { donor: donor.toURI() });
+            let result = [];
+            donations.map(d => {
+                let productSummary = getItemSummary(d, products, "donation");
+                let crSummary = getItemSummary(d, campaignRequests, "donation");
+                let data = getSummary(productSummary, crSummary);
+                let item = {
+                    entityId: d.entityId,
+                    name: d.name,
+                    description: d.description,
+                    rules: d.rules,
+                    note: d.note,
+                    donateOn: d.donateOn,
+                    amount: d.amount,
+                    availableOn: d.availableOn,
+                    expirationOn: d.expirationOn,
+                    status: d.status,
+                    isExpired: d.isExpired,
+                    isDonationLeft: d.isDonationLeft,
+                    isDonationSuccess: d.isDonationSuccess,
+                    isDonationPartialSuccess: d.isDonationPartialSuccess,
+                    isDonationReturned: d.isDonationReturned,
+                    isDonationReturnMust: d.isDonationReturnMust,
+                    total: data.total,
+                    accepted: data.accepted,
+                    rejected: data.rejected,
+                    waiting: data.waiting,
+                }
+                result.push(item);
+            });
+            let resultJson = JSON.stringify(result, null, 4);
+        } catch(err){
+            assert(false, err);
+        }
+    })
+
+    it ('query donor approval', async () => {
+        let donor = await getParticipant("Donor", donorId1);
+        let donations = await businessNetworkConnection.query("Donor_GetDonation", { donor: donor.toURI() });
+        let products = await businessNetworkConnection.query("Donor_GetProduct", { donor: donor.toURI() });
+        let result = [];
+        products.map(p => {
+            let donation = donations.filter(d => d.entityId == p.donation.$identifier);
+            let item = {
+                donationName: donation.name,
+                donationDescription: donation.Description,
+                donationStatus: donation.status,
+                entityId: p.entityId,
+                approvalResponse: p.approvalResponse,
+                approvalStatus: p.approvalStatus,
+                createdOn: p.createdOn,
+                description: p.description,
+                name: p.name,
+                note: p.note,
+                status: p.status,
+                submittedForApprovalOn: p.submittedForApprovalOn,
+            }
+            result.push(item);
+        })
+        let resultJson = JSON.stringify(result, null, 4);
+    })
+
+    it ('query customer campaign information', async() => {
+        let customer = await getParticipant("Customer", customerId1);
+        let campaigns = await businessNetworkConnection.query("Customer_GetCampaign", { customer: customer.toURI() });
+        let campaignRequests = await businessNetworkConnection.query("Customer_GetCampaignRequest", { customer: customer.toURI() });
+        let products = await businessNetworkConnection.query("Customer_GetProduct", { customer: customer.toURI() });
+        let result = [];
+        campaigns.map(c=> {
+            let productSummary = getItemSummary(c, products, "donation");
+            let crSummary = getItemSummary(c, campaignRequests, "donation");
+            let data = getSummary(productSummary, crSummary);
+            // item for campaign-result per campaign
+            let item = {
+                entityId: c.entityId,
+                name: c.name,
+                description: c.description,
+                status: c.status,
+                amount: c.amount,
+                createdOn: c.createdOn,
+                donor: getObject("object", "Donor", c.donor.$identifier).name,
+                donation: getObject("object", "Donation", c.donation.$identifier).name,
+                donationAmount: getObject("object", "Donation", c.donation.$identifier).amount,
+                bankAccount: getObject("object", "BankAccount", c.bankAccount.$identifier).accountNumber,
+                total: data.total,
+                accepted: data.accepted,
+                rejected: data.rejected,
+                waiting: data.waiting,
+            }
+            result.push(item);
+        })
+        let resultJson = JSON.stringify(result, null, 4);
+    })
+
+});

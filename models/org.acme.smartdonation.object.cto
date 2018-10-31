@@ -25,7 +25,7 @@ asset CampaignRequest identified by entityId {
   o   DateTime      createdOn optional
   o   String        description
   o   String        name
-  o   ApprovalState requestStatus default = "WAITING"
+  o   ApprovalState requestStatus default = "NOT_SUBMITTED"
   o   String        requestStatusReason
   o   DateTime      respondedOn optional
   o   EntityState   status default = "ACTIVE"
@@ -82,13 +82,13 @@ asset TransferFund identified by entityId {
 asset Product identified by entityId {
   o   String            entityId
   o   String            approvalResponse optional
-  o   ApprovalState     approvalStatus default = "WAITING"
+  o   ApprovalState     approvalStatus default = "NOT_SUBMITTED"
   o   DateTime          createdOn optional
   o   String            description
   o   String            name
   o   String            note
   o   EntityState       status
-  o   DateTime          submittedForApprovaOn optional
+  o   DateTime          submittedForApprovalOn optional
   --> Campaign          campaign
   --> Customer          customer
   --> Donation          donation
