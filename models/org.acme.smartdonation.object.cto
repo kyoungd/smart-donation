@@ -90,6 +90,7 @@ asset Product identified by entityId {
   o   EntityState       status
   o   DateTime          submittedForApprovalOn optional
   --> Campaign          campaign
+  --> CampaignRequest   campaignRequest
   --> Customer          customer
   --> Donation          donation
   --> Donor             donor

@@ -109,6 +109,9 @@ query SelectTransferFund {
     WHERE (campaign == _$id)
 }
 
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
 query Donor_GetDonation {
   description: "Return all donation that is related to a donor"
   statement:
@@ -129,6 +132,9 @@ query Donor_GetCampaignRequest {
     SELECT org.acme.smartdonation.object.CampaignRequest
     WHERE (donor == _$donor)
 }
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 query Customer_GetCampaign {
   description: "Return all campaign for a customer"
@@ -151,16 +157,33 @@ query Customer_GetProduct {
     WHERE (customer == _$customer)
 }
 
-// query Supplier_GetCampaignRequest {
-//   description: "Return all campaign request for a supplier"
-//   statement:
-//     SELECT org.acme.smartdonation.object.CampaignRequest
-//     WHERE (supplier == _$supplier)
-// }
+query Customer_GetDonation {
+  description: "Return all donation that is related to a customer"
+  statement:
+    SELECT org.acme.smartdonation.object.Donation
+    WHERE (customer == _$customer)
+}
 
-// query Supplier_GetProduct {
-//   description: "Return all product for a supplier"
-//   statement:
-//     SELECT org.acme.smartdonation.object.Product
-//     WHERE (supplier == _$supplier)
-// }
+query Customer_GetSupplier {
+  description: "Return all supplier that is related to a customer"
+  statement:
+    SELECT org.acme.smartdonation.participant.Supplier
+    WHERE (customer == _$customer)
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+query Supplier_GetCampaignRequest {
+  description: "Return all campaign request for a supplier"
+  statement:
+    SELECT org.acme.smartdonation.object.CampaignRequest
+    WHERE (supplier == _$supplier)
+}
+
+query Supplier_GetProduct {
+  description: "Return all product for a supplier"
+  statement:
+    SELECT org.acme.smartdonation.object.Product
+    WHERE (supplier == _$supplier)
+}

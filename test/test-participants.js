@@ -39,13 +39,19 @@ before((done) => {
 
 let customerId1 = "";
 let donorId1 = "";
-let bankAccountId1, bankAccountId2, bankAccountId3, bankAccountId4, bankAccountId5;
-let supplierId1, supplierId2;
+let bankAccountId1, bankAccountId2, bankAccountId3, bankAccountId4, bankAccountId5, bankAccountId6, bankAccountId7;
+let supplierId1, supplierId2, supplierId3, supplierId4;
 let donationId1 = "";
 let campaignId1 = "";
 let campaignRequestId1, campaignRequestId2, campaignRequestId3, campaignRequestId4;
 let productId1, productId2, productId3, productId4;
 let transferFundId1;
+let bankAccountId21, bankAccountId22, bankAccountId23, bankAccountId24, bankAccountId25, bankAccountId26, bankAccountId27;
+let supplierId21, supplierId22, supplierId23, supplierId24;
+let donationId21 = "";
+let campaignId21 = "";
+let campaignRequestId21, campaignRequestId22, campaignRequestId23, campaignRequestId24;
+let productId21, productId22, productId23, productId24;
 
 async function getObject(objectGroup, objectType, entityId) {
     const fns = NS + "." + objectGroup + "." + objectType;
@@ -393,6 +399,7 @@ describe('testing utilities', ()=> {
             item.note = entity.note;
             item.status = entity.status;
             item.campaign = factory.newRelationship(nsObject, 'Campaign', entity.campaignId);
+            item.campaignRequest = factory.newRelationship(nsObject, 'CampaignRequest', entity.campaignRequestId);
             item.customer = factory.newRelationship(nsParticipant, 'Customer', entity.customerId);
             item.donation = factory.newRelationship(nsObject, 'Donation', entity.donationId);
             item.donor = factory.newRelationship(nsParticipant, 'Donor', entity.donorId);
@@ -420,6 +427,7 @@ describe('testing utilities', ()=> {
                 note: "Adverting link...",
                 status: "ACTIVE",
                 campaignId,
+                campaignRequestId,
                 customerId,
                 donationId,
                 donorId,
@@ -449,6 +457,8 @@ describe('testing utilities', ()=> {
             bankAccountId5 = await createABankAccount(factory);
             bankAccountId3 = await createABankAccount(factory);
             bankAccountId4 = await createABankAccount(factory);
+            bankAccountId6 = await createABankAccount(factory);
+            bankAccountId7 = await createABankAccount(factory);
         }
         catch(err) {
             console.log('create a bankaccounts: ', err);
@@ -472,6 +482,8 @@ describe('testing utilities', ()=> {
         try {
             supplierId1 = await createASupplier(factory, "first-supplier", customerId1, bankAccountId2);
             supplierId2 = await createASupplier(factory, "second-supplier", customerId1, bankAccountId5);
+            supplierId3 = await createASupplier(factory, "third-supplier", customerId1, bankAccountId6);
+            supplierId4 = await createASupplier(factory, "fourth-supplier", customerId1, bankAccountId7);
         }
         catch(err) {
             console.log('create two suppliers: ', err);
@@ -509,11 +521,11 @@ describe('testing utilities', ()=> {
             assert.deepEqual(cr.donor.$identifier, donorId1, "first-campaign-request donorId mismatch.");
             assert.deepEqual(cr.supplier.$identifier, supplierId1, "first-campaign-request supplierId mismatch.");
             campaignRequestId2 = await CreateACampaignRequest(factory, "second-campaign-request", 
-                campaignId1, customerId1, donationId1, donorId1, supplierId1);
+                campaignId1, customerId1, donationId1, donorId1, supplierId2);
             campaignRequestId3 = await CreateACampaignRequest(factory, "third-campaign-request", 
-                campaignId1, customerId1, donationId1, donorId1, supplierId2);
+                campaignId1, customerId1, donationId1, donorId1, supplierId3);
             campaignRequestId4 = await CreateACampaignRequest(factory, "fourth-campaign-request", 
-                campaignId1, customerId1, donationId1, donorId1, supplierId2);
+                campaignId1, customerId1, donationId1, donorId1, supplierId4);
         }
         catch(err) {
             console.log('create two campaignRequests: ', err);
@@ -522,9 +534,9 @@ describe('testing utilities', ()=> {
 
     it('create 4 products', async()=> {
         productId1 = await CreateAProduct("Product 1", campaignId1, campaignRequestId1, customerId1, donationId1, donorId1, supplierId1);
-        productId2 = await CreateAProduct("Product 2", campaignId1, campaignRequestId2, customerId1, donationId1, donorId1, supplierId1);
-        productId3 = await CreateAProduct("Product 3", campaignId1, campaignRequestId3, customerId1, donationId1, donorId1, supplierId2);
-        productId4 = await CreateAProduct("Product 4", campaignId1, campaignRequestId4, customerId1, donationId1, donorId1, supplierId2);
+        productId2 = await CreateAProduct("Product 2", campaignId1, campaignRequestId2, customerId1, donationId1, donorId1, supplierId2);
+        productId3 = await CreateAProduct("Product 3", campaignId1, campaignRequestId3, customerId1, donationId1, donorId1, supplierId3);
+        productId4 = await CreateAProduct("Product 4", campaignId1, campaignRequestId4, customerId1, donationId1, donorId1, supplierId4);
     })
 
     it('do transfer fund', async() => {
@@ -668,6 +680,42 @@ describe('testing utilities', ()=> {
             assert(false, err);
         }
     });
+        
+    it('create additional campaign and data', async()=> {
+        try {
+            bankAccountId21 = await createABankAccount(factory);
+            bankAccountId22 = await createABankAccount(factory);
+            bankAccountId25 = await createABankAccount(factory);
+            bankAccountId23 = await createABankAccount(factory);
+            bankAccountId24 = await createABankAccount(factory);
+            bankAccountId26 = await createABankAccount(factory);
+            bankAccountId27 = await createABankAccount(factory);
+
+            supplierId21 = await createASupplier(factory, "first-supplier", customerId1, bankAccountId22);
+            supplierId22 = await createASupplier(factory, "second-supplier", customerId1, bankAccountId25);
+            supplierId23 = await createASupplier(factory, "third-supplier", customerId1, bankAccountId26);
+            supplierId24 = await createASupplier(factory, "fourth-supplier", customerId1, bankAccountId27);
+
+            donationId21 = await createADonation(factory, "second-donation", customerId1, donorId1, bankAccountId23);
+
+            campaignId21 = await CreateACampaign(factory, "second-campaign", customerId1, donorId1, donationId21, bankAccountId24);
+
+            campaignRequestId21 = await CreateACampaignRequest(factory, "first-campaign-request", 
+                campaignId21, customerId1, donationId21, donorId1, supplierId21);
+            campaignRequestId22 = await CreateACampaignRequest(factory, "second-campaign-request", 
+                campaignId21, customerId1, donationId21, donorId1, supplierId22);
+            campaignRequestId23 = await CreateACampaignRequest(factory, "third-campaign-request", 
+                campaignId21, customerId1, donationId21, donorId1, supplierId23);
+            campaignRequestId24 = await CreateACampaignRequest(factory, "fourth-campaign-request", 
+                campaignId21, customerId1, donationId21, donorId1, supplierId24);
+
+            productId21 = await CreateAProduct("Product 1", campaignId21, campaignRequestId21, customerId1, donationId21, donorId1, supplierId21);
+            productId22 = await CreateAProduct("Product 2", campaignId21, campaignRequestId22, customerId1, donationId21, donorId1, supplierId22);
+            }
+        catch(err) {
+            console.log('create two campaignRequests: ', err);
+        }
+    })
 
 });
 
@@ -675,14 +723,12 @@ describe('testing queries', ()=> {
 
     const getItemSummary = (group, items, type) => {
         let summary = {
-            donationId: "",
             count: 0,
             accepted: 0,
             rejected: 0,
             canceled: 0,
         }
 
-        summary.donationId = group.entityId;
         summary.count = items.reduce((count, p) => group.entityId == p[type].$identifier ? count+1 : count, 0);
         summary.accepted = items.reduce((count, p)=> group.entityId == p[type].$identifier && p.approvalStatus == "ACCEPTED" ? count+1 : count, 0);
         summary.rejected = items.reduce((count, p)=> group.entityId == p[type].$identifier && p.approvalStatus == "REJECTED" ? count+1 : count, 0);
@@ -746,58 +792,43 @@ describe('testing queries', ()=> {
                 result.push(item);
             });
             let resultJson = JSON.stringify(result, null, 4);
+            assert.exists(resultJson, "query donor campaign - assert.exists failed");
         } catch(err){
             assert(false, err);
         }
     })
 
     it ('query donor approval', async () => {
-        let donor = await getParticipant("Donor", donorId1);
-        let donations = await businessNetworkConnection.query("Donor_GetDonation", { donor: donor.toURI() });
-        let products = await businessNetworkConnection.query("Donor_GetProduct", { donor: donor.toURI() });
-        let result = [];
-        products.map(p => {
-            let donation = donations.filter(d => d.entityId == p.donation.$identifier);
-            let item = {
-                donationName: donation.name,
-                donationDescription: donation.Description,
-                donationStatus: donation.status,
-                entityId: p.entityId,
-                approvalResponse: p.approvalResponse,
-                approvalStatus: p.approvalStatus,
-                createdOn: p.createdOn,
-                description: p.description,
-                name: p.name,
-                note: p.note,
-                status: p.status,
-                submittedForApprovalOn: p.submittedForApprovalOn,
-            }
-            result.push(item);
-        })
-        let resultJson = JSON.stringify(result, null, 4);
+        try {
+            let donor = await getParticipant("Donor", donorId1);
+            let donations = await businessNetworkConnection.query("Donor_GetDonation", { donor: donor.toURI() });
+            let products = await businessNetworkConnection.query("Donor_GetProduct", { donor: donor.toURI() });
+            let result = [];
+            products.map(p => {
+                let arrayD = donations.filter(d => d.entityId == p.donation.$identifier);
+                let donation = arrayD && arrayD.length == 1 ? arrayD[0] : null;
+                let item = {
+                    donationName: donation.name,
+                    donationDescription: donation.description,
+                    donationStatus: donation.status,
+                    entityId: p.entityId,
+                    approvalResponse: p.approvalResponse,
+                    approvalStatus: p.approvalStatus,
+                    createdOn: p.createdOn,
+                    description: p.description,
+                    name: p.name,
+                    note: p.note,
+                    status: p.status,
+                    submittedForApprovalOn: p.submittedForApprovalOn,
+                }
+                result.push(item);
+            })
+            let resultJson = JSON.stringify(result, null, 4);
+            assert.exists(resultJson);
+        } catch (err) {
+            assert(false, 'query customer campaign information - ' + err);
+        }
     })
-
-    async function getCampaignRequest(campaign, campaignRequests) {
-        let crs = [];
-        const promises = campaignRequests.filter(cr => cr.campaign.$identifier == campaign.entityId).map(async (cr) => {
-            let supplier = await getParticipant("Supplier", cr.supplier.$identifier);
-            let item = {
-                entityId: cr.entityId,
-                amount: cr.amount,
-                createdOn: cr.createdOn,
-                description: cr.description,
-                name: cr.name,
-                requestStatus: cr.requestStatus,
-                requestStatusReason: cr.requestStatusReason,
-                respondedOn: cr.respondedOn,
-                status: cr.status,
-                supplier: supplier.name,
-            }
-            crs.push(item);
-        })
-        await Promise.all(promises);
-        return crs;
-    }
 
     it ('query customer campaign information', async() => {
         try {
@@ -805,15 +836,34 @@ describe('testing queries', ()=> {
             let campaigns = await businessNetworkConnection.query("Customer_GetCampaign", { customer: customer.toURI() });
             let campaignRequests = await businessNetworkConnection.query("Customer_GetCampaignRequest", { customer: customer.toURI() });
             let products = await businessNetworkConnection.query("Customer_GetProduct", { customer: customer.toURI() });
+            let donations = await businessNetworkConnection.query("Customer_GetDonation", { customer: customer.toURI() });
+            let suppliers = await businessNetworkConnection.query("Customer_GetSupplier", { customer: customer.toURI() });
             let result = [];
-            const promises = campaigns.map(async (c)=> {
-                let productSummary = getItemSummary(c, products, "donation");
-                let crSummary = getItemSummary(c, campaignRequests, "donation");
+            campaigns.map((c)=> {
+                let productSummary = getItemSummary(c, products, "campaign");
+                let crSummary = getItemSummary(c, campaignRequests, "campaign");
                 let data = getSummary(productSummary, crSummary);
                 // item for campaign-result per campaign
-                let donation = await getObject("object", "Donation", c.donation.$identifier);
-                let bankAccount = await getObject("util", "BankAccount", c.bankAccount.$identifier);
-                let resultCrs = await getCampaignRequest(c, campaignRequests);
+                let arrayD = donations.filter(dn => dn.entityId == c.donation.$identifier);
+                let donation = arrayD && arrayD.length == 1 ? arrayD[0] : null;
+                let crs = [];
+                campaignRequests.filter(cr => cr.campaign.$identifier == c.entityId).map((cr) => {
+                    let arrayS = suppliers.filter(s => s.participantId == cr.supplier.$identifier);
+                    let supplier = arrayS && arrayS.length == 1 ? arrayS[0] : null;
+                    let item = {
+                        entityId: cr.entityId,
+                        amount: cr.amount,
+                        createdOn: cr.createdOn,
+                        description: cr.description,
+                        name: cr.name,
+                        requestStatus: cr.requestStatus,
+                        requestStatusReason: cr.requestStatusReason,
+                        respondedOn: cr.respondedOn,
+                        status: cr.status,
+                        supplier: supplier.name,
+                    }
+                    crs.push(item);
+                })
                 let item = {
                     entityId: c.entityId,
                     name: c.name,
@@ -823,16 +873,14 @@ describe('testing queries', ()=> {
                     createdOn: c.createdOn,
                     donation : donation.name,
                     donationAmount: donation.amount,
-                    bankAccount: bankAccount.accountNumber,
                     total: data.total,
                     accepted: data.accepted,
                     rejected: data.rejected,
                     waiting: data.waiting,
-                    campaignRequests: resultCrs,
+                    campaignRequests: crs,
                 }
                 result.push(item);
             })
-            await Promise.all(promises);
             let resultJson = JSON.stringify(result, null, 4);
             assert.exists(resultJson);
         } catch (err) {
@@ -840,4 +888,100 @@ describe('testing queries', ()=> {
         }
     })
 
+    it ('query customer campaign production information', async() => {
+        try {
+            let customer = await getParticipant("Customer", customerId1);
+            let campaigns = await businessNetworkConnection.query("Customer_GetCampaign", { customer: customer.toURI() });
+            let campaignRequests = await businessNetworkConnection.query("Customer_GetCampaignRequest", { customer: customer.toURI() });
+            let products = await businessNetworkConnection.query("Customer_GetProduct", { customer: customer.toURI() });
+            let donations = await businessNetworkConnection.query("Customer_GetDonation", { customer: customer.toURI() });
+            let suppliers = await businessNetworkConnection.query("Customer_GetSupplier", { customer: customer.toURI() });
+            let result = [];
+            campaignRequests.map(request => {
+                let arrayC = campaigns.filter(c=> c.entityId == request.campaign.$identifier);
+                let campaign = arrayC && arrayC.length == 1 ? arrayC[0] : null;
+                let arrayS = suppliers.filter(s => s.participantId == request.supplier.$identifier);
+                let supplier = arrayS && arrayS.length == 1 ? arrayS[0] : null;
+                let arrayD = donations.filter(d => d.entityId == request.donation.$identifier);
+                let donation = arrayD && arrayD.length == 1 ? arrayD[0] : null;
+                let arrayP = products.filter(p => p.campaignRequest.$identifier == request.entityId);
+                let product = arrayP && arrayP.length == 1 ? arrayP[0] : null;
+                let item = {
+                    entityId: request.entityId,
+                    amount: request.amount,
+                    createdOn: request.createdOn,
+                    description: request.description,
+                    campaign: campaign.name,
+                    campaigRequest: request.name,
+                    requestStatus: request.requestStatus,
+                    requestStatusReason: request.requestStatusReason,
+                    respondedOn: request.respondedOn,
+                    donation: donation.name,
+                    supplier: supplier.name,
+                    approvalResponse: product ? product.approvalResponse : "-",
+                    approvalStatus: product ? product.approvalStatus : "-",
+                    productDescription: product ? product.description : "-",
+                    productNote: product ? product.note : "-",
+                    productStatus: product ? product.status : "-",
+                    submittedForApprovalOn: product ? product.submittedForApprovalOn : null,
+                }
+                result.push(item);
+            })
+            let resultJson = JSON.stringify(result, null, 4);
+            assert.exists(resultJson);
+        } catch (err) {
+            assert(false, 'query customer campaign production information - ' + err);
+        }
+    })
+
+    async function querySupplierCampaign (supplierId) {
+        let supplier = await getParticipant("Supplier", supplierId);
+        let products = await businessNetworkConnection.query("Supplier_GetProduct", { supplier: supplier.toURI() });
+        let campaignRequests = await businessNetworkConnection.query("Supplier_GetCampaignRequest", { supplier: supplier.toURI() });
+        let result = [];
+        campaignRequests.map(request => {
+            let arrayP = products.filter(p => p.campaignRequest.$identifier == request.entityId);
+            let product = arrayP && arrayP.length == 1 ? arrayP[0] : null;
+            let item = {
+                entityId: request.entityId,
+                amount: request.amount,
+                createdOn: request.createdOn,
+                description: request.description,
+                campaigRequest: request.name,
+                requestStatus: request.requestStatus,
+                requestStatusReason: request.requestStatusReason,
+                respondedOn: request.respondedOn,
+                approvalResponse: product ? product.approvalResponse : "-",
+                approvalStatus: product ? product.approvalStatus : "-",
+                productDescription: product ? product.description : "-",
+                productNote: product ? product.note : "-",
+                productStatus: product ? product.status : "-",
+                submittedForApprovalOn: product ? product.submittedForApprovalOn : null,
+            }
+            result.push(item);
+        })
+        let resultJson = JSON.stringify(result, null, 4);
+        return resultJson;
+    }
+
+    it ('query supplier campaign - product exist', async () => {
+        try {
+            let resultJson = await querySupplierCampaign(supplierId1);
+            assert.exists(resultJson, "query supplier campaign - assert.exists failed");
+        } catch(err){
+            assert(false, err);
+        }
+    })
+
+    it ('query supplier campaign - product not exist 1', async () => {
+        try {
+            let resultJson = await querySupplierCampaign(supplierId23);
+            assert.exists(resultJson, "query supplier campaign - assert.exists failed");
+            assert.equal(resultJson.approvalResponse, "-");
+            assert.equal(resultJson.reqeustStatus, "SUBMITTED");
+        } catch(err){
+            assert(false, err);
+        }
+    })
+    
 });
